@@ -5,7 +5,7 @@
 ## 📖 Project Overview
 MangaList bridges the gap between massive community-driven databases and premium streaming interfaces. Unlike traditional aggregator sites that often overwhelm users with dense text links, MangaList adopts a visual-first philosophy. By prioritizing high-quality cover art and a cinematic layout, the platform transforms the act of browsing into a premium experience.
 
-This project was developed for **CSS 481***.
+This project was developed for **CSS 481**.
 
 ## ✨ Key Features
 * **Cinematic Browsing:** A dark-mode, visual-first interface featuring dynamic "New Release" and genre-based scrollable rows.

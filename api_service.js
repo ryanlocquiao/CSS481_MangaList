@@ -1,6 +1,7 @@
 // Base Configuration
-const BASE_URL = 'https://api.mangadex.org';
-const COVERL_URL = 'https://uploads.mangadex.org/covers';
+// const BASE_URL = 'https://api.mangadex.org';
+const BASE_URL = 'http://127.0.0.1:5000';
+const COVER_URL = 'https://uploads.mangadex.org/covers';
 
 /**
  * Data Nromalization Layer
@@ -8,9 +9,8 @@ const COVERL_URL = 'https://uploads.mangadex.org/covers';
  * Transforms complex MangaDex API responses into a clean, flat object for the MangaList UI.
  */
 function normalizeMangaData(manga) {
-    const attributes = manga.attributes;
-
     // Extract details needed for manga data
+    const attributes = manga.attributes;
     const coverRel = manga.relationships.find(r => r.type === 'cover_art');
     const authorRel = manga.relationships.find(r => r.type === 'author');
     const coverFileName = coverRel?.attributes?.fileName;
@@ -18,12 +18,12 @@ function normalizeMangaData(manga) {
 
     return {
         id: manga.id,
-        title: attributes.title.en || Object.values(attributes.title[0]),
-        descriptiion: attributes.descriptiion.en || "No description available.",
+        title: attributes.title.en || Object.values(attributes.title)[0],
+        description: attributes.description.en || "No description available.",
         status: attributes.status,
         tags: attributes.tags.map(tag => tag.attributes.name.en).slice(0, 5),    // Create a limit for tags for now until we can test them and find a good limit or have no limit
         coverImage: coverFileName
-            ? `${COVERL_URL}/${manga.id}/${coverFileName}`
+            ? `${COVER_URL}/${manga.id}/${coverFileName}`
             : 'placeholder.jpg', // TODO: Implement placeholder image
         author: authorName,
         rating: attributes.contentRating
@@ -45,24 +45,18 @@ const MangaService = {
     async searchManga(query, limit = 10) {
         try {
             // Include cover_art and author in includes[] so we avoid extra API calls
-            const url = new URL(`${BASE_URL}/manga`);
+            const url = new URL(`${BASE_URL}/search`);
             url.searchParams.append('title', query);
             url.searchParams.append('limit', limit);
-            url.searchParams.append('includes[]', 'cover_art');
-            url.searchParams.append('includes[]', 'author');
 
             const response = await fetch(url);
-
-            // Rate Limiting Handler
-            // Might switch to node.js + express to handle these better
-            if (response.status === 429) {
-                console.warn("Rate limit hit. Retrying in 2 seconds...");
-                const timeWait = 2000;  // Change as needed, be sure to change the warn to reflect it though
-                await new Promise(r => setTimeout(r, timeWait));
-                return this.searchManga(query, limit);
-            }
-
             const data = await response.json();
+
+            // Safety check
+            if (!data || !data.data) {
+                console.error("API Error or Empty Response:", data);
+                return [];
+            }
 
             // Normalize the list of results
             return data.data.map(normalizeMangaData);
@@ -79,7 +73,7 @@ const MangaService = {
      */
     async getChapterImages(chapterId) {
         try {
-            const response = await fetch(`${BASE_URL}/at-home-server/${chapterId}`);
+            const response = await fetch(`${BASE_URL}/chapter/${chapterId}`);
             const data = await response.json();
 
             const baseUrl = data.baseUrl;

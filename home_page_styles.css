@@ -1,0 +1,202 @@
+/* Netflix-Style Variables */
+:root {
+    --bg-color: #141414;
+    --text-color: #e5e5e5;
+    --primary-red: #e50914;
+    --nav-bg: rgba(20, 20, 20, 0.95);
+}
+
+/* Global CSS Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow-x: hidden;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 4%;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: var(--nav-bg);
+    z-index: 100;   /* So it can stay above scrolling content */
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.logo-red {
+    color: var(--primary-red);
+}
+
+.logo-grey {
+    color: #8c8c8c; /* Lighter grey so it doesn't blend in with background, but might change later */
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+}
+
+nav a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+nav a:hover, nav a.active {
+    color: white;
+    font-weight: bold;
+}
+
+.avatar {
+    width: 35px;
+    height: 35px;
+    background-color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* This is supposed to be a large, attention-grabbing area for featured manga */
+.hero-banner {
+    height: 80vh;
+    background-color: #222; /* Placeholder color before dynamic image loads */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 4%;
+    margin-bottom: 20px;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(20, 20, 20, 0.9) 0%, rgba(20, 20, 20, 0.4) 50%, rgba(20, 20, 20, 0) 100%);
+    z-index: 1;
+}
+
+.hero-content {
+    position: realtive;
+    z-index: 2;
+    max-width: 500px;
+}
+
+.hero-title {
+    font-size: 3rem;
+    margin-bottom: 15px;;
+}
+
+.hero-synopsis {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    line-height: 1.4;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+.btn-read, .btn-info {
+    padding: 10px 24px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.btn-read {
+    background-color: white;
+    color: black;
+}
+
+.btn-read:hover {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.btn-info {
+    background-color: rgba(109, 109, 110, 0.7);
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: rgba(109, 109, 110, 0.4);
+}
+
+.dashboard {
+    padding: 0 4%;
+    padding-bottom: 50px;
+}
+
+.row {
+    margin-bottom: 3vw;
+}
+
+.row-title {
+    font-size: 1.4vw;
+    color: var(--text-color);
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+/* Horizontal Scrolling Logic */
+.row-container {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px 0;
+    scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.row-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.row-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.manga-card {
+    flex: 0 0 auto; /* Prevents card from shrinking */
+    width: 200px;
+    height: 300px;
+    background-color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.3 ease;
+}
+
+.manga-card:hover {
+    transform: scale(1.05); /* Slight enlarges on hover */
+    z-index: 10;
+}
+
+.card-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #666;
+}

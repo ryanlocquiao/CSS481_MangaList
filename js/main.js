@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initDashboard() {
     // Load the Hero Banner with a featured title
     // Will probably change to be dynamic
-    await loadHeroBanner("Sono Bosque Doll wa Koi");
+    await loadHeroBanner("Sono Bisque Doll wa Koi");
 
     // Load scrollable rows
     const rowContainers = document.querySelectorAll('.row-container');
@@ -120,7 +120,7 @@ function openModal(manga) {
     // Switch to Theater Mode Reader
     const readBtn = modal.querySelector('.btn-read');
     readBtn.onclick = () => {
-        window.location.href = `reader.html?mangaId=${mangaid}`;
+        window.location.href = `reader.html?mangaId=${manga.id}`;
     }
 
     coverImage.style.backgroundImage = `url('${manga.coverImage}')`;

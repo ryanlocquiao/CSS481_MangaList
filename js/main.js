@@ -38,6 +38,12 @@ async function loadHeroBanner(titleQuery) {
         const synopsisElem = document.querySelector('.hero-synopsis');
         const moreInfoBtn = document.querySelector('.btn-info');
 
+        // Switch to Theater Mode Reader
+        const readBtn = document.querySelector('.hero-content .btn-read');
+        readBtn.onclick = () => {
+            window.location.href = `reader.html?mangaId=${manga.id}`;
+        }
+
         banner.style.backgroundImage = `url('${manga.coverImage}')`;
         titleElem.textContent = manga.title;
 
@@ -110,6 +116,12 @@ function openModal(manga) {
     const status = modal.querySelector('.modal-status');
     const synopsis = modal.querySelector('.modal-synopsis');
     const tagsContainer = modal.querySelector('.modal-tags');
+
+    // Switch to Theater Mode Reader
+    const readBtn = modal.querySelector('.btn-read');
+    readBtn.onclick = () => {
+        window.location.href = `reader.html?mangaId=${mangaid}`;
+    }
 
     coverImage.style.backgroundImage = `url('${manga.coverImage}')`;
     title.textContent = manga.title;

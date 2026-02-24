@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mangaId = urlParams.get('mangaId');
 
     if (!mangaId) {
-        window.location.href = 'home_page.html';
+        window.location.href = 'index.html';
         return;
     }
 
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight') nextPage();
         if (e.key === 'ArrowLeft') prevPage();
-        if (e.key === 'Escape') window.location.href = 'home_page.html';
+        if (e.key === 'Escape') window.location.href = 'index.html';
     });
 });
 
@@ -54,7 +54,7 @@ async function loadFirstChapter(mangaId) {
 
         if (!feedData.data || feedData.data.length === 0) {
             alert("Sorry, no English chapters are available for this manga yet.");
-            window.location.href = 'home_page.html';
+            window.location.href = 'index.html';
             return;
         }
 
@@ -65,7 +65,7 @@ async function loadFirstChapter(mangaId) {
 
         if (!validChapter) {
             alert("Sorry, the chapters for this manga are officially licensed/externally hosted and cannot be read here.");
-            window.location.href = 'home_page.html';
+            window.location.href = 'index.html';
             return;
         }
 

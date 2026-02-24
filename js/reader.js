@@ -1,5 +1,5 @@
 /**
- * reader.js - Theater Mode Controller
+ * js/reader.js - Theater Mode Controller
  * 
  * Manages the full-screen reading experience.
  */

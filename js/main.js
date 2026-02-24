@@ -123,6 +123,35 @@ function openModal(manga) {
         window.location.href = `reader.html?mangaId=${manga.id}`;
     }
 
+    // Favorites Logic
+    const favBtn = modal.querySelector('.btn-favorite');
+
+    // Pull from browser's memory
+    let favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
+
+    let isFav = favorites.some(fav => fav.id === manga.id);
+    if (isFav) {
+        favBtn.classList.add('favorited');
+    } else {
+        favBtn.classList.remove('favorited');
+    }
+
+    favBtn.onclick = () => {
+        // Fetch latest list
+        favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
+        isFav = favorites.some(fav => fav.id === manga.id);
+
+        if (isFav) {
+            favorites = favorites.filter(fav => fav.id !== manga.id);
+            favBtn.classList.remove('favorited');
+        } else {
+            favorites.push(manga);
+            favBtn.classList.add('favorited');
+        }
+
+        localStorage.setItem('mangaFavorites', JSON.stringify(favorites));
+    }
+
     coverImage.style.backgroundImage = `url('${manga.coverImage}')`;
     title.textContent = manga.title;
     synopsis.textContent = manga.description;

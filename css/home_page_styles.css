@@ -180,6 +180,48 @@ nav a:hover, nav a.active {
     scrollbar-width: none;
 }
 
+/* Kevin: added navigation arrows for home page rows */
+.row-wrapper {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+}
+
+.handle {
+    position: absolute;
+    height: 320px; 
+    width: 50px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    z-index: 10;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+}
+
+.handle:hover {
+    background: rgba(0, 0, 0, 0.8);
+    font-size: 2.5rem;
+}
+
+.row-wrapper:hover .handle {
+    opacity: 1;
+}
+
+.left-handle { 
+    left: 0; 
+    border-radius: 0 4px 4px 0; 
+}
+.right-handle { 
+    right: 0; 
+    border-radius: 4px 0 0 4px; 
+}
+
 .manga-item {
     flex: 0 0 auto;
     width: 200px;

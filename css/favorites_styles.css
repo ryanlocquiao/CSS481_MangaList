@@ -15,3 +15,24 @@
     gap: 30px 20px;
     justify-items: center;
 }
+
+.empty-library-msg {
+    grid-column: 1 / -1; /* Spans the entire width of the grid */
+    text-align: center;
+    padding: 50px 20px;
+    color: #a3a3a3;
+    font-size: 1.2rem;
+    background-color: #181818;
+    border-radius: 8px;
+    border: 1px dashed #333;
+}
+
+.empty-library-msg a {
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.empty-library-msg a:hover {
+    text-decoration: underline;
+}

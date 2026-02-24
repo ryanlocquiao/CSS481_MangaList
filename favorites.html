@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <link rel="stylesheet" href="css/home_page_styles.css">
+    <link rel="stylesheet" href="css/favorites_styles.css">
+    <title>MangaList - My Favorites</title>
+</head>
+<body>
+    <header class="navbar">
+        <h1 class="logo" onclick="window.location.href='index.html'"><span class="logo-red">Manga</span><span class="logo-grey">List</span></h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="favorites.html" class="active">My Favorites</a></li>
+            </ul>
+        </nav>
+        <div class="user-profile">
+            <div class="avatar"></div>
+        </div>
+    </header>
+
+    <main class="dashboard favorites-page">
+        <h2 class="page-title">My Favorites</h2>
+
+        <div id="favorites-grid" class="favorites-grid"></div>
+    </main>
+
+    <div id="manga-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+    </div>
+</body>
+</html>

@@ -1,5 +1,5 @@
 /**
- * main.js - Home Page Contoller
+ * js/main.js - Home Page Contoller
  * 
  * Manages the UI components and connects the HTML layout to the MangaService API layer.
  */
@@ -125,15 +125,16 @@ function openModal(manga) {
 
     // Favorites Logic
     const favBtn = modal.querySelector('.btn-favorite');
+    const bookmarkIcon = modal.querySelector('#bookmark-icon');
 
     // Pull from browser's memory
     let favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
 
     let isFav = favorites.some(fav => fav.id === manga.id);
     if (isFav) {
-        favBtn.classList.add('favorited');
+        bookmarkIcon.src = 'assets/bookmark-filled.png';
     } else {
-        favBtn.classList.remove('favorited');
+        bookmarkIcon.src = 'assets/bookmark-empty.png';
     }
 
     favBtn.onclick = () => {
@@ -143,10 +144,10 @@ function openModal(manga) {
 
         if (isFav) {
             favorites = favorites.filter(fav => fav.id !== manga.id);
-            favBtn.classList.remove('favorited');
+            bookmarkIcon.src = 'assets/bookmark-empty.png';
         } else {
             favorites.push(manga);
-            favBtn.classList.add('favorited');
+            bookmarkIcon.src = 'assets/bookmark-filled.png';
         }
 
         localStorage.setItem('mangaFavorites', JSON.stringify(favorites));

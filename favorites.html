@@ -30,6 +30,33 @@
 
     <div id="manga-modal" class="modal hidden">
         <div class="modal-overlay"></div>
+        <div class="modal-content wide-layout">
+            <button class="close-btn">&times;</button>
+            <div class="modal-cover-col">
+                <div class="modal-cover-image"></div>
+            </div>
+            <div class="modal-details-col">
+                <h2 class="modal-title">Manga Title</h2>
+                <div class="modal-meta">
+                    <div class="meta-group">
+                        <span class="meta-label">Rating:</span>
+                        <span class="modal-rating">SAFE</span>
+                    </div>
+                    <div class="meta-group">
+                        <span class="meta-label">Status:</span>
+                        <span class="modal-rating">COMPLETED</span>
+                    </div>
+                </div>
+                <p class="modal-synopsis">Synopsis goes here...</p>
+                <div class="modal-tags"></div>
+                <div class="modal-actions">
+                    <button class="btn-read">Read Now</button>
+                    <button class="btn-read" title="Toggle Favorite"><!-- Add Button Logo Here--></button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script src="js/favorites.js"></script>
 </body>
 </html>

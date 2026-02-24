@@ -1,0 +1,17 @@
+.favorites-page {
+    padding-top: 100px;
+    min-height: 100vh;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 30px 20px;
+    justify-items: center;
+}

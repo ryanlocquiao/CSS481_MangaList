@@ -7,6 +7,7 @@
 // State variables to keep track of where the user is in the chapter
 let pages = [];
 let currentPageIndex = 0;
+let currentManga = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Extract Manga ID from the URL
@@ -19,9 +20,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Fetch Manga details to populate top HUD title
-    const manga = await MangaService.getMangaById(mangaId);
-    if (manga) {
-        document.getElementById('manga-title-display').textContent = manga.title;
+    currentManga = await MangaService.getMangaById(mangaId);
+    if (currentManga) {
+        document.getElementById('manga-title-display').textContent = currentManga.title;
     }
 
     // Fetch and load chapter pages
@@ -72,6 +73,14 @@ async function loadFirstChapter(mangaId) {
         pages = pagesData;
         document.getElementById('total-pages').textContent = pages.length;
 
+        const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
+        if (progress[mangaId]) {
+            currentPageIndex = progress[mangaId].pageIndex || 0;
+            if (currentPageIndex >= pages.length) {
+                currentPageIndex = pages.length - 1;
+            }
+        }
+
         renderPage();
     } catch (error) {
         console.error("CRITICAL ERROR loading chapter:", error);
@@ -93,6 +102,18 @@ function renderPage() {
 
     // Scroll to top if prev page was tall
     window.scrollTo(0, 0);
+
+    if (currentManga) {
+        const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
+        progress[currentManga.id] = {
+            id: currentManga.id,
+            title: currentManga.title,
+            coverImage: currentManga.coverImage,
+            pageIndex: currentPageIndex,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('readingProgress', JSON.stringify(progress));
+    }
 }
 
 function nextPage() {

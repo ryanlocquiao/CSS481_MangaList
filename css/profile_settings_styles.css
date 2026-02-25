@@ -71,3 +71,55 @@
     color: #888;
     text-transform: uppercase;
 }
+
+.settings-group {
+    background-color: #181818;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.settings-group h4 {
+    font-size: 1.2rem;
+    color: white;
+    margin-bottom: 15px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-top: 1px solid #333;
+}
+
+.setting-item:first-of-type {
+    border-top: none;
+}
+
+.setting-info h5 {
+    color: #e5e5e5;
+    font-size: 1.05rem;
+    margin-bottom: 5px;
+}
+
+.setting-info p {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.btn-danger {
+    background-color: transparent;
+    color: #e50914;
+    border: 1px solid #e50914;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+    background-color: #e50914;
+    color: white;
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/home_page_styles.css">
+    <link rel="stylesheet" href="css/profile_settings_styles.css">
+    <title>MangaList - Settings</title>
+</head>
+<body>
+    <header class="navbar">
+        <h1 class="logo" onclick="window.location.href='index.html'"><span class="logo-red">Manga</span><span class="logo-grey">List</span></h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="favorites.html">My Favorites</a></li>
+            </ul>
+        </nav>
+        <div class="user-profile">
+            <div class="avatar"></div>
+            <div class="dropdown-menu hidden">
+                <a href="profile.html">Profile</a>
+                <a href="settings.html">Settings</a>
+                <div class="dropdown-divider"></div>
+                <a href="#">Log Out</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container">
+        <h2 class="section-title">Settings</h2>
+
+        <div class="settings-group">
+            <h4>Application Data</h4>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h5>Clear Local Storage</h5>
+                    <p>Remove all saved favorites and cached data from this browser.</p>
+                </div>
+                <button id="clear-data-btn" class="btn-danger">Clear Data</button>
+            </div>
+        </div>
+
+        <div class="settings-group">
+            <h4>Account Status</h4>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h5>MangaDex API Connection</h5>
+                    <p>Current backend proxy status for retrieving chapters.</p>
+                </div>
+                <span style="color: #46d369; font-weight: bold;">CONNECTED</span>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/settings.js"></script>
+</body>
+</html>

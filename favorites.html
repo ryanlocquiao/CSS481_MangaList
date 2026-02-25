@@ -9,18 +9,7 @@
     <title>MangaList - My Favorites</title>
 </head>
 <body>
-    <header class="navbar">
-        <h1 class="logo" onclick="window.location.href='index.html'"><span class="logo-red">Manga</span><span class="logo-grey">List</span></h1>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="favorites.html" class="active">My Favorites</a></li>
-            </ul>
-        </nav>
-        <div class="user-profile">
-            <div class="avatar"></div>
-        </div>
-    </header>
+    <div id="navbar-container"></div>
 
     <main class="dashboard favorites-page">
         <h2 class="page-title">My Favorites</h2>
@@ -44,19 +33,23 @@
                     </div>
                     <div class="meta-group">
                         <span class="meta-label">Status:</span>
-                        <span class="modal-rating">COMPLETED</span>
+                        <span class="modal-status">COMPLETED</span>
                     </div>
                 </div>
                 <p class="modal-synopsis">Synopsis goes here...</p>
                 <div class="modal-tags"></div>
                 <div class="modal-actions">
                     <button class="btn-read">Read Now</button>
-                    <button class="btn-read" title="Toggle Favorite"><!-- Add Button Logo Here--></button>
+                    <button class="btn-favorite" title="Toggle Favorite">
+                        <img id="bookmark-icon" src="assets/bookmark-empty.png" alt="Bookmark" width="22" height="22">
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="js/favorites.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/api_service.js"></script>
 </body>
 </html>

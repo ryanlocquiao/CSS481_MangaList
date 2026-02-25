@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/home_page_styles.css">
+    <link rel="stylesheet" href="css/profile_settings_styles.css">
+    <title>MangaList - Settings</title>
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <main class="page-container">
+        <h2 class="section-title">Settings</h2>
+
+        <div class="settings-group">
+            <h4>Application Data</h4>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h5>Clear Local Storage</h5>
+                    <p>Remove all saved favorites and cached data from this browser.</p>
+                </div>
+                <button id="clear-data-btn" class="btn-danger">Clear Data</button>
+            </div>
+        </div>
+
+        <div class="settings-group">
+            <h4>Account Status</h4>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h5>MangaDex API Connection</h5>
+                    <p>Current backend proxy status for retrieving chapters.</p>
+                </div>
+                <span style="color: #46d369; font-weight: bold;">CONNECTED</span>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/settings.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/api_service.js"></script>
+</body>
+</html>

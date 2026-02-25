@@ -101,6 +101,27 @@ def get_cover(manga_id, filename):
         return Response(r.iter_content(chunk_size=1024), content_type=r.headers.get('Content-Type', 'image/jpeg'))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/manga/<manga_id>/feed', methods=['GET'])
+def get_manga_feed(manga_id):
+    """
+    Proxy: Get Chapter Feed for a Manga
+
+    Fetches the list of English chapters for a specific manga.
+    """
+    url = f"{BASE_URL}/manga/{manga_id}/feed"
+
+    payload = {
+        'translatedLanguage[]': 'en',
+        'order[chapter]': 'asc',
+        'limit': 50
+    }
+
+    try:
+        response = requests.get(url, params=payload)
+        return jsonify(response.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     
 # Server Entry Point
 if __name__ == '__main__':

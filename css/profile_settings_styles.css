@@ -1,0 +1,125 @@
+.page-container {
+    padding-top: 100px;
+    max-width: 800px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding-bottom: 50px;
+}
+
+.section-title {
+    font-size: 2.2rem;
+    color: white;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.profile-card {
+    background-color: #181818;
+    border-radius: 8px;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.profile-avatar-large {
+    width: 120px;
+    height: 120px;
+    background-image: url('../assets/user-icon.png');
+    background-size: cover;
+    filter: invert(1);
+    border-radius: 50%;
+    background-color: #333;
+}
+
+.profile-details h3 {
+    font-size: 2rem;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.profile-details p {
+    color: #a3a3a3;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.stat-box {
+    background-color: #222;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.stat-box .number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+}
+
+.stat-box .label {
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.settings-group {
+    background-color: #181818;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.settings-group h4 {
+    font-size: 1.2rem;
+    color: white;
+    margin-bottom: 15px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-top: 1px solid #333;
+}
+
+.setting-item:first-of-type {
+    border-top: none;
+}
+
+.setting-info h5 {
+    color: #e5e5e5;
+    font-size: 1.05rem;
+    margin-bottom: 5px;
+}
+
+.setting-info p {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.btn-danger {
+    background-color: transparent;
+    color: #e50914;
+    border: 1px solid #e50914;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+    background-color: #e50914;
+    color: white;
+}

@@ -67,11 +67,53 @@ nav a:hover, nav a.active {
 .avatar {
     width: 35px;
     height: 35px;
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png');
+    background-image: url('../assets/user-icon.png');
     background-size: cover;
     filter: invert(1) brightness(0.5);
     border-radius: 4px;
     cursor: pointer;
+}
+
+.user-profile {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background-color: #141414;
+    border: 1px solid #333;
+    border-radius: 6px;
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.dropdown-menu.hidden {
+    display: none;
+}
+
+.dropdown-menu a {
+    color: var(--text-color);
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-menu a:hover {
+    background-color: #333;
+    color: white;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #333;
+    margin: 5px 0;
 }
 
 /* This is supposed to be a large, attention-grabbing area for featured manga */
@@ -476,8 +518,23 @@ nav a:hover, nav a.active {
     border-color: white;
 }
 
-.btn-favorite.favorited {
-    background-color: white;
-    color: #181818;
+.nav-search {
+    position: relative;
+}
+
+#search-input {
+    background-color: rgba(0, 0, 0, 0.75);
+    border: 1px solid #e5e5e5;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    outline: none;
+    transition: width 0.3s ease, border-color 0.3s ease;
+    width: 200px;
+    font-size: 0.9rem;
+}
+
+#search-input:focus {
+    width: 260px;
     border-color: white;
 }

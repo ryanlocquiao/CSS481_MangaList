@@ -1,5 +1,5 @@
 /**
- * main.js - Home Page Contoller
+ * js/main.js - Home Page Contoller
  * 
  * Manages the UI components and connects the HTML layout to the MangaService API layer.
  */
@@ -7,7 +7,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Wait for HTML to fully load before trying to manipulate it
     initDashboard();
-
     setupModalListener();
 });
 
@@ -26,6 +25,8 @@ async function initDashboard() {
         // rowContainers[1] = New Releases
         await populateRow(rowContainers[1], "Romance", 10);
     }
+
+    loadContinueReading();
 }
 
 async function loadHeroBanner(titleQuery) {
@@ -125,15 +126,16 @@ function openModal(manga) {
 
     // Favorites Logic
     const favBtn = modal.querySelector('.btn-favorite');
+    const bookmarkIcon = modal.querySelector('#bookmark-icon');
 
     // Pull from browser's memory
     let favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
 
     let isFav = favorites.some(fav => fav.id === manga.id);
     if (isFav) {
-        favBtn.classList.add('favorited');
+        bookmarkIcon.src = 'assets/bookmark-filled.png';
     } else {
-        favBtn.classList.remove('favorited');
+        bookmarkIcon.src = 'assets/bookmark-empty.png';
     }
 
     favBtn.onclick = () => {
@@ -143,10 +145,10 @@ function openModal(manga) {
 
         if (isFav) {
             favorites = favorites.filter(fav => fav.id !== manga.id);
-            favBtn.classList.remove('favorited');
+            bookmarkIcon.src = 'assets/bookmark-empty.png';
         } else {
             favorites.push(manga);
-            favBtn.classList.add('favorited');
+            bookmarkIcon.src = 'assets/bookmark-filled.png';
         }
 
         localStorage.setItem('mangaFavorites', JSON.stringify(favorites));
@@ -177,4 +179,66 @@ function closeModal() {
     modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
     document.body.style.overflowX = 'hidden';
+}
+
+function loadContinueReading() {
+    const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
+    const readingList = Object.values(progress).sort((a, b) => b.timestamp - a.timestamp);
+
+    // Don't show the row if they haven't read anything
+    if (readingList.length === 0) return;
+
+    const dashboard = document.querySelector('.dashboard');
+
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const title = document.createElement('h3');
+    title.className = 'row-title';
+    title.textContent = 'Continue Reading';
+
+    const container = document.createElement('div');
+    container.className = 'row-container';
+
+    readingList.forEach(manga => {
+        const itemContainer = document.createElement('div');
+        itemContainer.className = 'manga-item';
+
+        const card = document.createElement('div');
+        card.className = 'manga-card';
+        card.style.backgroundImage = `url('${manga.coverImage}')`;
+        card.style.backgroundSize = 'cover';
+        card.style.backgroundPosition = 'center';
+        card.style.position = 'relative';
+        card.title = manga.title;
+
+        const badge = document.createElement('div');
+        badge.style.position = 'absolute';
+        badge.style.bottom = '8px';
+        badge.style.right = '8px';
+        badge.style.backgroundColor = 'rgba(229, 9, 20, 0.9)';
+        badge.style.color = 'white';
+        badge.style.padding = '4px 8px';
+        badge.style.borderRadius = '4px';
+        badge.style.fontSize = '0.75rem';
+        badge.style.fontWeight = 'bold';
+        badge.textContent = `Page ${manga.pageIndex + 1}`;
+        card.appendChild(badge);
+
+        const titleElem = document.createElement('div');
+        titleElem.className = 'manga-title-below';
+        titleElem.textContent = manga.title;
+
+        card.addEventListener('click', () => window.location.href = `reader.html?mangaId=${manga.id}`);
+        titleElem.addEventListener('click', () => window.location.href = `reader.html?mangaId=${manga.id}`);
+
+        itemContainer.appendChild(card);
+        itemContainer.appendChild(titleElem);
+        container.appendChild(itemContainer);
+    });
+
+    row.appendChild(title);
+    row.appendChild(container);
+
+    dashboard.insertBefore(row, dashboard.firstChild);
 }

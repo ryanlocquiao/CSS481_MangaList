@@ -1,5 +1,5 @@
 /**
- * reader.js - Theater Mode Controller
+ * js/reader.js - Theater Mode Controller
  * 
  * Manages the full-screen reading experience.
  */
@@ -7,6 +7,7 @@
 // State variables to keep track of where the user is in the chapter
 let pages = [];
 let currentPageIndex = 0;
+let currentManga = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Extract Manga ID from the URL
@@ -19,9 +20,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Fetch Manga details to populate top HUD title
-    const manga = await MangaService.getMangaById(mangaId);
-    if (manga) {
-        document.getElementById('manga-title-display').textContent = manga.title;
+    currentManga = await MangaService.getMangaById(mangaId);
+    if (currentManga) {
+        document.getElementById('manga-title-display').textContent = currentManga.title;
     }
 
     // Fetch and load chapter pages
@@ -41,16 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadFirstChapter(mangaId) {
     try {
-        const targetUrl = `https://api.mangadex.org/manga/${mangaId}/feed?translatedLanguage[]=en&order[chapter]=asc&limit=50`;
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-
-        const feedRes = await fetch(proxyUrl);
-
-        if (!feedRes.ok) {
-            throw new Error(`MangaDex API error! Status: ${feedRes.status}`);
-        }
-
-        const feedData = await feedRes.json();
+        const feedData = await MangaService.getMangaFeed(mangaId);
 
         if (!feedData.data || feedData.data.length === 0) {
             alert("Sorry, no English chapters are available for this manga yet.");
@@ -71,31 +63,23 @@ async function loadFirstChapter(mangaId) {
 
         const chapterId = validChapter.id;
 
-        // Get page image URLs for that chapter
-        const targetServerUrl = `https://api.mangadex.org/at-home/server/${chapterId}`;
-        const proxyServerUrl = `https://corsproxy.io/?${encodeURIComponent(targetServerUrl)}`;
+        const pagesData = await MangaService.getChapterImages(chapterId);
 
-        const serverRes = await fetch(proxyServerUrl);
-
-        if (!serverRes.ok) {
-            throw new Error(`MangaDex API error! Status: ${serverRes.status}`);
-        }
-
-        const serverData = await serverRes.json();
-
-        if (serverData.result === "error") {
-            console.error("MangaDex Server Error:", serverData.errors);
+        if (!pagesData || pagesData.length === 0) {
             alert("MangaDex is having trouble loading this chapter right now.");
             return;
         }
 
-        const baseUrl = serverData.baseUrl;
-        const hash = serverData.chapter.hash;
-        const filenames = serverData.chapter.data;
-
-        pages = filenames.map(file => `${baseUrl}/data/${hash}/${file}`);
-
+        pages = pagesData;
         document.getElementById('total-pages').textContent = pages.length;
+
+        const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
+        if (progress[mangaId]) {
+            currentPageIndex = progress[mangaId].pageIndex || 0;
+            if (currentPageIndex >= pages.length) {
+                currentPageIndex = pages.length - 1;
+            }
+        }
 
         renderPage();
     } catch (error) {
@@ -118,6 +102,18 @@ function renderPage() {
 
     // Scroll to top if prev page was tall
     window.scrollTo(0, 0);
+
+    if (currentManga) {
+        const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
+        progress[currentManga.id] = {
+            id: currentManga.id,
+            title: currentManga.title,
+            coverImage: currentManga.coverImage,
+            pageIndex: currentPageIndex,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('readingProgress', JSON.stringify(progress));
+    }
 }
 
 function nextPage() {

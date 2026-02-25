@@ -1,5 +1,5 @@
 /**
- * api_service.js - Data Fetching Service
+ * js/api_service.js - Data Fetching Service
  * 
  * Acts as specialized middleware that manages API integration, data normalization, and communication with the backend.
  */
@@ -112,6 +112,22 @@ const MangaService = {
         } catch (error) {
             console.error("Error fetching chapter pages:", error);
             return [];
+        }
+    },
+
+    /**
+     * Get the Chapter Feed for a Manga
+     * 
+     * @param {string} mangaId
+     */
+    async getMangaFeed(mangaId) {
+        try {
+            const response = await fetch(`${BASE_URL}/manga/${mangaId}/feed`);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error fetching manga feed:", error);
+            return null;
         }
     }
 };

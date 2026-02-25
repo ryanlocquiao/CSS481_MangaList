@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/home_page_styles.css">
+    <link rel="stylesheet" href="css/profile_settings_styles.css">
+    <title>MangaList - Profile</title>
+</head>
+<body>
+    <header class="navbar">
+        <h1 class="logo" onclick="window.location.href='index.html'"><span class="logo-red">Manga</span><span class="logo-grey">List</span></h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="favorites.html">My Favorites</a></li>
+            </ul>
+        </nav>
+        <div class="user-profile">
+            <div class="avatar"></div>
+            <div class="dropdown-menu hidden">
+                <a href="profile.html">Profile</a>
+                <a href="settings.html">Settings</a>
+                <div class="dropdown-divider"></div>
+                <a href="#">Log Out</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container">
+        <h2 class="section-title">My Profile</h2>
+
+        <div class="profile-card">
+            <div class="profile-avatar-large"></div>
+            
+            <div class="profile-details">
+                <h3>User Name</h3>
+                <p>Add your bio here...</p>
+                <div class="profile-stats">
+                    <div class="stat-box">
+                        <span id="fav-count" class="number">0</span>
+                        <span class="label">Favorites</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/profile.js"></script>
+</body>
+</html>

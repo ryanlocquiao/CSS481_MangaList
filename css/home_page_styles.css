@@ -74,6 +74,48 @@ nav a:hover, nav a.active {
     cursor: pointer;
 }
 
+.user-profile {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background-color: #141414;
+    border: 1px solid #333;
+    border-radius: 6px;
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.dropdown-menu.hidden {
+    display: none;
+}
+
+.dropdown-menu a {
+    color: var(--text-color);
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-menu a:hover {
+    background-color: #333;
+    color: white;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #333;
+    margin: 5px 0;
+}
+
 /* This is supposed to be a large, attention-grabbing area for featured manga */
 .hero-banner {
     height: 80vh;

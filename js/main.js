@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Wait for HTML to fully load before trying to manipulate it
     initDashboard();
     setupModalListener();
-    setupDropdown();
 });
 
 async function initDashboard() {
@@ -178,22 +177,4 @@ function closeModal() {
     modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
     document.body.style.overflowX = 'hidden';
-}
-
-function setupDropdown() {
-    const avatar = document.querySelector('.avatar');
-    const dropdown = document.querySelector('.dropdown-menu');
-
-    if (avatar && dropdown) {
-        avatar.addEventListener('click', (event) => {
-            event.stopPropagation();
-            dropdown.classList.toggle('hidden');
-        });
-
-        document.addEventListener('click', (event) => {
-            if (!dropdown.contains(event.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
-    }
 }

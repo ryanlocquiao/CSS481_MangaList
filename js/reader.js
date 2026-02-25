@@ -41,16 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadFirstChapter(mangaId) {
     try {
-        const targetUrl = `https://api.mangadex.org/manga/${mangaId}/feed?translatedLanguage[]=en&order[chapter]=asc&limit=50`;
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-
-        const feedRes = await fetch(proxyUrl);
-
-        if (!feedRes.ok) {
-            throw new Error(`MangaDex API error! Status: ${feedRes.status}`);
-        }
-
-        const feedData = await feedRes.json();
+        const feedData = await MangaService.getMangaFeed(mangaId);
 
         if (!feedData.data || feedData.data.length === 0) {
             alert("Sorry, no English chapters are available for this manga yet.");
@@ -71,30 +62,14 @@ async function loadFirstChapter(mangaId) {
 
         const chapterId = validChapter.id;
 
-        // Get page image URLs for that chapter
-        const targetServerUrl = `https://api.mangadex.org/at-home/server/${chapterId}`;
-        const proxyServerUrl = `https://corsproxy.io/?${encodeURIComponent(targetServerUrl)}`;
+        const pagesData = await MangaService.getChapterImages(chapterId);
 
-        const serverRes = await fetch(proxyServerUrl);
-
-        if (!serverRes.ok) {
-            throw new Error(`MangaDex API error! Status: ${serverRes.status}`);
-        }
-
-        const serverData = await serverRes.json();
-
-        if (serverData.result === "error") {
-            console.error("MangaDex Server Error:", serverData.errors);
+        if (!pagesData || pagesData.length === 0) {
             alert("MangaDex is having trouble loading this chapter right now.");
             return;
         }
 
-        const baseUrl = serverData.baseUrl;
-        const hash = serverData.chapter.hash;
-        const filenames = serverData.chapter.data;
-
-        pages = filenames.map(file => `${baseUrl}/data/${hash}/${file}`);
-
+        pages = pagesData;
         document.getElementById('total-pages').textContent = pages.length;
 
         renderPage();

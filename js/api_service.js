@@ -113,5 +113,21 @@ const MangaService = {
             console.error("Error fetching chapter pages:", error);
             return [];
         }
+    },
+
+    /**
+     * Get the Chapter Feed for a Manga
+     * 
+     * @param {string} mangaId
+     */
+    async getMangaFeed(mangaId) {
+        try {
+            const response = await fetch(`${BASE_URL}/manga/${mangaId}/feed`);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error fetching manga feed:", error);
+            return null;
+        }
     }
 };

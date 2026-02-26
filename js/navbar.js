@@ -33,13 +33,15 @@ function renderNavbar() {
                     <div id="search-dropdown" class="search-dropdown hidden"></div>
                 </div>
 
-                <div class="user-profile">
+                <button id="nav-login-btn" class="btn-read" style="padding: 6px 16px; font-size: 0.95rem;">Sign In</button>
+
+                <div id="nav-user-profile" class="user-profile hidden">
                     <div class="avatar"></div>
                     <div class="dropdown-menu hidden">
                         <a href="profile.html">Profile</a>
                         <a href="settings.html">Settings</a>
                         <div class="dropdown-divider"></div>
-                        <a href="#">Log Out</a>
+                        <a id="nav-logout-btn" href="#">Log Out</a>
                     </div>
                 </div>
             </div>

@@ -613,3 +613,53 @@ nav a:hover, nav a.active {
     margin: 0;
     letter-spacing: 0.5px;
 }
+
+/* Firebase Auth Model */
+.auth-layout {
+    max-width: 450px;
+    padding: 60px 68px 40px;
+    background-color: #181818;
+    position: relative;
+    z-index: 1001;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-layout h2 {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 28px;
+}
+
+.auth-layout input {
+    width: 100%;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    background: #333;
+    border: 1px solid #333;
+    color: white;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.auth-layout input:focus {
+    outline: none;
+    background: #444;
+}
+
+.auth-switch {
+    color: #737373;
+    margin-top: 16px;
+    font-size: 1rem;
+}
+
+.auth-switch span {
+    color: white;
+    cursor: pointer;
+}
+
+.auth-switch span:hover {
+    text-decoration: underline;
+}

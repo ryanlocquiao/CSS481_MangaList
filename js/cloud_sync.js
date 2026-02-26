@@ -16,7 +16,7 @@ const CloudSync = {
             await db.collection('users').doc(user.uid).set({
                 favorites: favorites,
                 readingProgress: progress,
-                lastUpdated: firebaseConfig.firestore.FieldValue.serverTimestamp()
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
         } catch (error) {
             console.error("Error saving data to cloud:", error);

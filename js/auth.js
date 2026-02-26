@@ -15,9 +15,9 @@ function injectAuthModel() {
                 <button id="close-auth-btn" class="close-btn">&times;</button>
                 <h2 id="auth-title">Sign In</h2>
                 <form id="auth-form">
-                    <input type="email" id="auth-email" placeholder="Email Address" required>
+                    <input type="email" id="auth-email" placeholder="Email Address" autocomplete="off" required>
                     <div class="password-wrapper">
-                        <input type="password" id="auth-password" placeholder="Password" required>
+                        <input type="password" id="auth-password" placeholder="Password" autocomplete="new-password" required>
                         <span id="toggle-password" class="toggle-password">Show</span>
                     </div>
                     <button type="submit" class="btn-read" style="width: 100%; margin-top: 20px; padding: 14px;">Sign In</button>
@@ -43,6 +43,9 @@ function setupAuthListeners() {
 
     // Open/Close logic
     document.getElementById('nav-login-btn')?.addEventListener('click', () => {
+        document.getElementById('auth-email').value = '';
+        document.getElementById('auth-password').value = '';
+
         authModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     })

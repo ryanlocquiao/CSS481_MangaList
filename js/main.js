@@ -34,7 +34,7 @@ async function initDashboard() {
 }
 
 async function loadHeroBanner(titleQuery) {
-    const results = await MangaService.searchManga(titleQuery, 5)
+    const results = await MangaService.searchManga(titleQuery, 5, null)
 
     if (results.length > 0) {
         const manga = results.find(m => m.author.includes('Fukuda') || m.author.includes('Shinichi')) || results[0];
@@ -64,9 +64,9 @@ async function loadHeroBanner(titleQuery) {
     }
 }
 
-async function populateRow(containerElem, query, limit) {
+async function populateRow(containerElem, query, limit, genre_id) {
     // Fetch data from API service
-    const mangaList = await MangaService.searchManga(query, limit);
+    const mangaList = await MangaService.searchManga(query, limit, genre_id);
 
     // Clear out gray HTML placeholder cards
     containerElem.innerHTML = '';

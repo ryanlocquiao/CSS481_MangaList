@@ -7,6 +7,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Wait for HTML to fully load before trying to manipulate it
     initDashboard();
+    setupScrollListeners();
     setupModalListener();
 });
 
@@ -172,6 +173,23 @@ function openModal(manga) {
 
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+}
+
+function setupScrollListeners() {
+    const dashboard = document.querySelector('.dashboard');
+
+    dashboard.addEventListener('click', (e) => {
+        if (e.target.classList.contains('handle')) {
+            const button = e.target;
+            const container = button.parentElement.querySelector('.row-container');
+            const scrollDistance = container.clientWidth * 0.8;
+            if (button.classList.contains('left-handle')) {
+                container.scrollBy({ left: -scrollDistance, behavior: 'smooth' });
+            } else {
+                container.scrollBy({ left: scrollDistance, behavior: 'smooth' });
+            }
+        }
+    });
 }
 
 function closeModal() {

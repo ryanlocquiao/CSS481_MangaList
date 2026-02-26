@@ -27,19 +27,30 @@ def search_manga():
         title (str): Search term (e.g., "My Dress Up Darling")
         limit (int): Items per page (limit set to 10 for now)
     """
-    items_per_page = 10
     query = request.args.get('title')
-    limit = request.args.get('limit', items_per_page)
+    limit = request.args.get('limit')
+    genre_id = request.args.get('includedTags[]')
 
     url = f"{BASE_URL}/manga"
+    order = {
+        "followedCount": "desc",
+        "rating": "desc",
+    }
+    final_order_query = {}
+    for key, value in order.items():
+        final_order_query[f"order[{key}]"] = value
 
     # I'm using a list of tuples instead of a dictionary because the requests lib handles array parameters (includes[]) better when passed as tuples, so cover_art and author are sent correctly
-    payload = [
-        ('title', query),
-        ('limit', limit),
-        ('includes[]', 'cover_art'),
-        ('includes[]', 'author')
-    ]
+    payload = {
+        "limit": limit,
+        **final_order_query,
+        "contentRating[]": ["safe", "suggestive"],
+        "includes[]": ["cover_art", "author"],
+    }
+    if query:
+        payload["title"] = query
+    if genre_id:
+        payload["includedTags[]"] = genre_id
 
     try:
         response = requests.get(url, params=payload)

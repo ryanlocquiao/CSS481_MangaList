@@ -46,16 +46,21 @@ const MangaService = {
     /**
      * Search/Browse Manga
      * 
-     * @param {string} query - Search term (e.g., "My Dress Up Darling")
+     * @param {string} query - Search term (e.g., "My Dress Up Darling") or null for no title
      * @param {number} limit - Items per page
+     * @param {string} genre_id - Genre ID to filter by
      */
-    async searchManga(query, limit = 10) {
+    async searchManga(query, limit, genre_id) {
         try {
             // Include cover_art and author in includes[] so we avoid extra API calls
             const url = new URL(`${BASE_URL}/search`);
-            url.searchParams.append('title', query);
+            if (query) {
+                url.searchParams.append('title', query);
+            }
+            if (genre_id) {
+                url.searchParams.append('includedTags[]', genre_id);
+            }
             url.searchParams.append('limit', limit);
-
             const response = await fetch(url);
             const data = await response.json();
 

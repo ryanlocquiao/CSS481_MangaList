@@ -21,10 +21,13 @@ async function initDashboard() {
 
     if (rowContainers.length >= 2) {
         // rowContainers[0] = Popular Action
-        await populateRow(rowContainers[0], "Action", 10);
+        await populateRow(rowContainers[0], null, 30, "391b0423-d847-456f-aff0-8b0cfc03066b");
         
-        // rowContainers[1] = New Releases
-        await populateRow(rowContainers[1], "Romance", 10);
+        // rowContainers[1] = Romance
+        await populateRow(rowContainers[1], null, 30, "423e2eae-a7a2-4a8b-ac03-a8351462d71d");
+
+        // rowContainers[2] = Fantasy
+        await populateRow(rowContainers[2], null, 30, "cdc58593-87dd-415e-bbc0-2ec27bf404cc");
     }
 
     loadContinueReading();

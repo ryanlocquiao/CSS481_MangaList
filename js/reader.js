@@ -10,6 +10,8 @@ let currentPageIndex = 0;
 let currentManga = null;
 let allChapters = [];
 let currentChapterId = null;
+let readerLayout = localStorage.getItem('readerLayout') || 'single';
+let readerDirection = localStorage.getItem('readerDirection') || 'ltr';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Extract Manga ID from the URL
@@ -30,10 +32,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Fetch and load chapter pages
     await loadChapters(mangaId, targetChapterId);
+    setupSettingsPanel();
 
     // Invisible click zones for navigating
-    document.getElementById('next-page-btn').addEventListener('click', nextPage);
-    document.getElementById('prev-page-btn').addEventListener('click', prevPage);
+    document.getElementById('left-zone').addEventListener('click', () => {
+        if (readerDirection === 'rtl') nextPage(); else prevPage();
+    });
+    document.getElementById('right-zone').addEventListener('click', () => {
+        if (readerDirection === 'rtl') prevPage(); else nextPage();
+    });
 
     const slider = document.getElementById('page-slider');
     if (slider) {
@@ -45,11 +52,41 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Keyboard support for code above
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight') nextPage();
-        if (e.key === 'ArrowLeft') prevPage();
+        if (e.key === 'ArrowRight') {
+            if (readerDirection === 'rtl') prevPage(); else nextPage();
+        }
+        if (e.key === 'ArrowLeft') {
+            if (readerDirection === 'rtl') nextPage(); else prevPage();
+        }
         if (e.key === 'Escape') window.location.href = 'index.html';
     });
 });
+
+function setupSettingsPanel() {
+    const panel = document.getElementById('settings-panel');
+    const btnOpen = document.getElementById('settings-btn');
+    const btnClose = document.getElementById('close-settings-btn');
+    const layoutSelect = document.getElementById('setting-layout');
+    const directionSelect = document.getElementById('setting-direction');
+
+    layoutSelect.value = readerLayout;
+    directionSelect.value = readerDirection;
+
+    btnOpen.onclick = () => panel.classList.add('open');
+    btnClose.onclick = () => panel.classList.remove('open');
+
+    layoutSelect.addEventListener('change', (e) => {
+        readerLayout = e.target.value;
+        localStorage.setItem('readerLayout', readerLayout);
+        renderPage();
+    });
+
+    directionSelect.addEventListener('change', (e) => {
+        readerDirection = e.target.value;
+        localStorage.setItem('readerDirection', readerDirection);
+        renderPage();
+    })
+}
 
 async function loadChapters(mangaId, targetChapterId) {
     try {
@@ -169,13 +206,13 @@ async function fetchAndRenderChapter(chapterId, mangaId, isNewChapterClick) {
 }
 
 function showNoChaptersError() {
-    const imgElem = document.getElementById('reader-image');
-    const prevBtn = document.getElementById('prev-page-btn');
-    const nextBtn = document.getElementById('next-page-btn');
+    const container = document.getElementById('image-container');
+    const leftZone = document.getElementById('left-zone');
+    const rightZone = document.getElementById('right-zone');
     
-    if (imgElem) imgElem.style.display = 'none';
-    if (prevBtn) prevBtn.style.display = 'none';
-    if (nextBtn) nextBtn.style.display = 'none';
+    if (container) container.style.display = 'none';
+    if (leftZone) leftZone.style.display = 'none';
+    if (rightZone) rightZone.style.display = 'none';
 
     const canvas = document.querySelector('.theater-canvas');
     let errorMsg = document.getElementById('reader-error-msg');
@@ -205,14 +242,27 @@ function showNoChaptersError() {
 function renderPage() {
     if (pages.length === 0) return;
 
-    const imgElem = document.getElementById('reader-image');
+    const img1 = document.getElementById('reader-image-1');
+    const img2 = document.getElementById('reader-image-2');
+    const container = document.getElementById('image-container');
     const counterElem = document.getElementById('current-page');
 
-    // Update image source to the current URL in our array
-    imgElem.src = pages[currentPageIndex];
+    // Invert if Manga Mode is on
+    container.style.flexDirection = (readerDirection === 'rtl') ? 'row-reverse' : 'row';
 
-    // Update page counter in the HUD (zero-based)
-    counterElem.textContent = currentPageIndex + 1;
+    // Render first page
+    img1.src = pages[currentPageIndex];
+
+    if (readerLayout === 'double' && currentPageIndex < pages.length - 1) {
+        img2.src = pages[currentPageIndex + 1];
+        img2.style.display = 'block';
+        container.classList.remove('single-mode');
+        counterElem.textContent = `${currentPageIndex + 1}-${currentPageIndex + 2}`;
+    } else {
+        img2.style.display = 'none';
+        container.classList.add('single-mode');
+        counterElem.textContent = currentPageIndex + 1;
+    }
 
     // Scroll to top if prev page was tall
     window.scrollTo(0, 0);
@@ -220,6 +270,8 @@ function renderPage() {
     const slider = document.getElementById('page-slider');
     if (slider) {
         slider.value = currentPageIndex;
+        slider.dir = (readerDirection === 'rtl') ? 'rtl' : 'ltr';
+        slider.style.backgroundPosition = (readerDirection === 'rtl') ? 'right center' : 'left center';
         const percent = pages.length > 1 ? (currentPageIndex / (pages.length - 1)) * 100 : 0;
         slider.style.backgroundSize = `${percent}% 100%`;
     }
@@ -243,14 +295,17 @@ function renderPage() {
             timestamp: Date.now()
         };
         localStorage.setItem('readingProgress', JSON.stringify(progress));
-        CloudSync.saveToCloud();
+        if (typeof CloudSync !== 'undefined') CloudSync.saveToCloud();
     }
 }
 
 async function nextPage() {
+    // One or 2 pages
+    const step = (readerLayout === 'double' && currentPageIndex < pages.length - 1) ? 2 : 1;
+
     // Only go forward if we aren't on the last page
     if (currentPageIndex < pages.length - 1) {
-        currentPageIndex++;
+        currentPageIndex += step;
         renderPage();
     } else {
         const currentIndex = allChapters.findIndex(c => c.id === currentChapterId);
@@ -272,9 +327,11 @@ async function nextPage() {
 }
 
 function prevPage() {
+    const step = (readerLayout === 'double') ? 2 : 1;
+
     // Only go backward if we aren't on the first page
     if (currentPageIndex > 0) {
-        currentPageIndex--;
+        currentPageIndex = Math.max(0, currentPageIndex - step);
         renderPage();
     }
 }

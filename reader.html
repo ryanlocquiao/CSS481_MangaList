@@ -12,13 +12,22 @@
         <div class="theater-hud top-hud">
             <button class="btn-exit-theater" onclick="window.location.href='index.html'">&larr; Back to Browse</button>
             <div id="manga-title-display" class="theater-chapter-title">Loading...</div>
-            <div class="theater-spacer"></div>
+            <div class="theater-spacer" style="display: flex; justify-content: flex-end;">
+                <button id="settings-btn" class="btn-settings" title="Reader Settings">
+                    <img src="assets/gear-settings.png" alt="Settings" width="24" height="24">
+                </button>
+            </div>
         </div>
 
         <div class="theater-canvas">
-            <div id="prev-page-btn" class="click-zone prev-zone" title="Previous Page"></div>
-            <img id="reader-image" src="" alt="Manga Page">
-            <div id="next-page-btn" class="click-zone next-zone" title="Next Page"></div>
+            <div id="left-zone" class="click-zone prev-zone"></div>
+
+            <div id="image-container" class="image-container single-mode">
+                <img id="reader-image-1" src="" alt="Manga Page">
+                <img id="reader-image-2" src="" alt="Manga Page" style="display: none;">
+            </div>
+
+            <div id="right-zone" class="click-zone next-zone"></div>
         </div>
 
         <div class="theater-hud bottom-hud">
@@ -27,6 +36,29 @@
             </div>
             <div class="progress-container">
                 <input id="page-slider" type="range" min="0" max="0" value="0">
+            </div>
+        </div>
+
+        <div id="settings-panel" class="settings-panel">
+            <div class="settings-header">
+                <h3>Reader Settings</h3>
+                <button id="close-settings-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <label >Page Layout</label>
+                    <select id="setting-layout" class="settings-dropdown">
+                        <option value="single">Vertical (Single Page)</option>
+                        <option value="double">Horizontal (Double Page)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Page Turning</label>
+                    <select id="setting-direction" class="settings-dropdown">
+                        <option value="ltr">Right (Standard Left-to-Right)</option>
+                        <option value="rtl">Left (Manga Right-to-Left)</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>

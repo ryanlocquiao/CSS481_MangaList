@@ -197,3 +197,117 @@ body {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 3px;
 }
+
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    gap: 2px;
+}
+
+.image-container img {
+    max-width: 50%;
+    max-height: 100%;
+    object-fit: contain;
+    user-select: none;
+}
+
+.image-container.single-mode img {
+    max-width: 100%;
+}
+
+.btn-settings {
+    background: transparent;
+    color: #a3a3a3;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.btn-settings:hover {
+    color: white;
+    transform: rotate(90deg);
+}
+
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: -35%; /* Hidden off screen by default */
+    width: 33%;
+    max-width: 400px;
+    min-width: 250px;
+    height: 100vh;
+    background-color: #141414;
+    border-left: 1px solid #333;
+    z-index: 3000;
+    transition: right 0.3s ease;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-panel.open {
+    right: 0;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1 px solid #333;
+    color: white;
+}
+
+.settings-header h3 {
+    font-size: 1.2rem;
+}
+
+.settings-body {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.setting-group label {
+    color: #a3a3a3;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.settings-dropdown {
+    width: 100%;
+    background-color: #222;
+    color: white;
+    border: 1px solid #444;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.settings-dropdown:focus {
+    border-color: #e50914;
+}
+
+.close-btn {
+    background: transparent;
+    color: #a3a3a3;
+    border: none;
+    font-size: 32px;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease, transform ease;
+}
+
+.close-btn:hover {
+    color: white;
+    transform: scale(1.1);
+}

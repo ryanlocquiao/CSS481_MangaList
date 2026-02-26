@@ -655,11 +655,11 @@ nav a:hover, nav a.active {
     font-size: 1rem;
 }
 
-.auth-switch span {
+#auth-toggle {
     color: white;
     cursor: pointer;
 }
 
-.auth-switch span:hover {
+#auth-toggle:hover {
     text-decoration: underline;
 }

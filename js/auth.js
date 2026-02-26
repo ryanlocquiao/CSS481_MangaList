@@ -60,12 +60,12 @@ function setupAuthListeners() {
         if (isSignUpMode) {
             authTitle.textContent = 'Sign Up';
             submitBtn.textContent = 'Sign Up';
-            togglePretext.textContent = 'Already have an account?';
+            togglePretext.textContent = 'Already have an account? ';
             authToggle.textContent = 'Sign in now.';
         } else {
-            authTitle.textContent = 'Sign Up';
-            submitBtn.textContent = 'Sign Up';
-            togglePretext.textContent = 'New to MangaList?';
+            authTitle.textContent = 'Sign In';
+            submitBtn.textContent = 'Sign In';
+            togglePretext.textContent = 'New to MangaList? ';
             authToggle.textContent = 'Sign up now.';
         }
         authError.style.display = 'none';

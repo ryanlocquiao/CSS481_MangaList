@@ -58,7 +58,7 @@ function setupModalListener() {
     overlay.addEventListener('click', closeModal);
 }
 
-function openModal(manga) {
+async function openModal(manga) {
     const modal = document.getElementById('manga-modal');
     const coverImage = modal.querySelector('.modal-cover-image');
     const title = modal.querySelector('.modal-title');
@@ -66,6 +66,7 @@ function openModal(manga) {
     const status = modal.querySelector('.modal-status');
     const synopsis = modal.querySelector('.modal-synopsis');
     const tagsContainer = modal.querySelector('.modal-tags');
+    const bookmarkIcon = document.getElementById('bookmark-icon');
 
     // Route to Theater Mode
     const readBtn = modal.querySelector('.btn-read');
@@ -75,15 +76,9 @@ function openModal(manga) {
 
     // Favorites Toggle Logic
     const favBtn = modal.querySelector('.btn-favorite');
-    const bookmarkIcon = modal.querySelector('#bookmark-icon');
     let favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
     let isFav = favorites.some(fav => fav.id === manga.id);
-
-    if (isFav) {
-        bookmarkIcon.src = 'assets/bookmark-filled.png';
-    } else {
-        bookmarkIcon.src = 'assets/bookmark-empty.png';
-    }
+    bookmarkIcon.src = isFav ? 'assets/bookmark-filled.png' : 'assets/bookmark-empty.png';
 
     favBtn.onclick = () => {
         favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
@@ -120,6 +115,59 @@ function openModal(manga) {
             tagSpan.textContent = tagText;
             tagsContainer.appendChild(tagSpan);
         });
+    }
+
+    let chaptersContainer = modal.querySelector('.modal-chapters-container');
+    if (!chaptersContainer) {
+        chaptersContainer = document.createElement('div');
+        chaptersContainer.className = 'modal-chapters-container';
+        chaptersContainer.innerHTML = `
+            <h3 class="modal-chapters-header">Chapters</h3>
+            <div id="modal-chapters-list" class="chapters-list"></div>
+        `;
+        modal.querySelector('.modal-details-col').appendChild(chaptersContainer);
+    }
+
+    const chaptersList = chaptersContainer.querySelector('#modal-chapters-list');
+    chaptersList.innerHTML = '<p style="color: #a3a3a3;">Loading chapters...</p>';
+
+    try {
+        const feed = await MangaService.getMangaFeed(manga.id);
+        if (!feed || !feed.data || feed.data.length === 0) {
+            chaptersList.innerHTML = '<p style="color: #a3a3a3;">No chapters available.</p>';
+        } else {
+            let validChapters = feed.data.filter(c => c.attributes.pages > 0 && !c.attributes.externalUrl);
+            validChapters.sort((a, b) => parseFloat(a.attributes.chapter || 0) - parseFloat(b.attributes.chapter || 0));
+
+            if (validChapters.length === 0) {
+                chaptersList.innerHTML = '<p style="color: #a3a3a3;">No readable English chapters found.</p>';
+            } else {
+                chaptersList.innerHTML = '';
+                validChapters.forEach(chapter => {
+                    const row = document.createElement('div');
+                    row.className = 'chapter-row';
+
+                    const chapNum = chapter.attributes.chapter ? `Chapter ${chapter.attributes.chapter}` : 'Oneshot';
+                    const chapTitle = chapter.attributes.title ? `<span class="chapter-title">${chapter.attributes.title}</span>` : '';
+
+                    row.innerHTML = `
+                        <div class="chapter-info">
+                            <span class="chapter-number">${chapNum}</span>
+                        ${chapTitle}
+                        </div>
+                        <span style="font-size: 1.2rem;">&#9654;</span>
+                    `;
+
+                    row.onclick = () => {
+                        window.location.href = `reader.html?mangaId=${manga.id}&chapterId=${chapter.id}`;
+                    };
+                    chaptersList.appendChild(row);
+                });
+            }
+        }
+    } catch (err) {
+        console.error("Error loading chapters:", err);
+        chaptersList.innerHTML = '<p style="color: #ff4444; padding: 10px;">Failed to load chapters.</p>';
     }
 
     modal.classList.remove('hidden');

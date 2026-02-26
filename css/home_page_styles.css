@@ -376,7 +376,27 @@ nav a:hover, nav a.active {
     flex: 1;
     padding: 40px;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0);
     position: relative;
+}
+
+.modal-details-col::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-details-col::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-details-col::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    border: 2px solid #141414; 
+}
+
+.modal-details-col::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
 .close-btn {
@@ -690,4 +710,74 @@ nav a:hover, nav a.active {
 
 .toggle-password:hover {
     color: white;
+}
+
+/* Modal Chapters List */
+.modal-chapters-container {
+    margin-top: 30px;
+    border-top: 1px solid #333;
+    padding-top: 20px;
+}
+.modal-chapters-header {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+.chapters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.chapters-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chapters-list::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05); border-radius: 3px;
+}
+
+.chapters-list::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2); border-radius: 3px;
+}
+
+.chapter-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.chapter-row:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.chapter-info {
+    display: flex; flex-direction: column; gap: 4px;
+}
+
+.chapter-number {
+    font-weight: bold; font-size: 1.1rem; color: white;
+}
+
+.chapter-title {
+    font-size: 0.9rem; color: #a3a3a3;
+}
+
+.chapter-dropdown {
+    background-color: rgba(20, 20, 20, 0.9);
+    color: white;
+    border: 1px solid #333;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+    margin-left: 15px;
 }

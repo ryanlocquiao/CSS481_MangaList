@@ -113,3 +113,40 @@ body {
 .next-zone {
     right: 0;
 }
+
+.chapter-dropdown {
+    background-color: rgba(20, 20, 20, 0.9);
+    color: white;
+    border: 1px solid #333;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+    margin-left: 15px;
+    appearance: none;
+    background-image: url('../assets/dropdown-arrow.png');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 15px;
+}
+
+.chapter-dropdown option {
+    background-color: #181818;
+    color: white;
+    padding: 10px;
+}
+
+.chapter-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chapter-dropdown::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.chapter-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}

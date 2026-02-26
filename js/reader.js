@@ -8,11 +8,14 @@
 let pages = [];
 let currentPageIndex = 0;
 let currentManga = null;
+let allChapters = [];
+let currentChapterId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Extract Manga ID from the URL
     const urlParams = new URLSearchParams(window.location.search);
     const mangaId = urlParams.get('mangaId');
+    const targetChapterId = urlParams.get('chapterId');
 
     if (!mangaId) {
         window.location.href = 'index.html';
@@ -26,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Fetch and load chapter pages
-    await loadFirstChapter(mangaId);
+    await loadChapters(mangaId, targetChapterId);
 
     // Invisible click zones for navigating
     document.getElementById('next-page-btn').addEventListener('click', nextPage);
@@ -40,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-async function loadFirstChapter(mangaId) {
+async function loadChapters(mangaId, targetChapterId) {
     try {
         const feedData = await MangaService.getMangaFeed(mangaId);
 
@@ -49,41 +52,109 @@ async function loadFirstChapter(mangaId) {
             return;
         }
 
-        // Find the first chapter that has actual pages on MangaDex
-        const validChapter = feedData.data.find(chapter =>
+        // Filter and sort all valid chapters
+        allChapters = feedData.data.filter(chapter => 
             chapter?.attributes?.pages > 0 && !chapter?.attributes?.externalUrl
         );
+        allChapters.sort((a, b) => parseFloat(a.attributes.chapter || 0) - parseFloat(b.attributes.chapter || 0));
 
-        if (!validChapter) {
+        if (allChapters.length === 0) {
             showNoChaptersError();
             return;
         }
 
-        const chapterId = validChapter.id;
+        let chapterToLoad = null;
 
-        const pagesData = await MangaService.getChapterImages(chapterId);
-
-        if (!pagesData || pagesData.length === 0) {
-            showNoChaptersError();
-            return;
+        // Did they click a specific chapter in the modal?
+        if (targetChapterId) {
+            chapterToLoad = allChapters.find(c => c.id === targetChapterId);
         }
 
-        pages = pagesData;
-        document.getElementById('total-pages').textContent = pages.length;
-
-        const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
-        if (progress[mangaId]) {
-            currentPageIndex = progress[mangaId].pageIndex || 0;
-            if (currentPageIndex >= pages.length) {
-                currentPageIndex = pages.length - 1;
+        // If not, do they have saved progress?
+        if (!chapterToLoad) {
+            const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
+            if (progress[mangaId] && progress[mangaId].chapterId) {
+                chapterToLoad = allChapters.find(c => c.id === progress[mangaId].chapterId);
             }
         }
 
-        renderPage();
+        // If not, visit chapter 1
+        if (!chapterToLoad) {
+            chapterToLoad = allChapters[0];
+        }
+
+        currentChapterId = chapterToLoad.id;
+
+        buildChapterDropdown();
+        await fetchAndRenderChapter(currentChapterId, mangaId, targetChapterId !== null);
     } catch (error) {
         console.error("CRITICAL ERROR loading chapter:", error);
         showNoChaptersError();
     }
+}
+
+function buildChapterDropdown() {
+    let select = document.getElementById('chapter-select');
+
+    if (!select) {
+        const titleDisplay = document.getElementById('manga-title-display');
+        select = document.createElement('select');
+        select.id = 'chapter-select';
+        select.className = 'chapter-dropdown';
+        titleDisplay.parentNode.insertBefore(select, titleDisplay.nextSibling);
+
+        titleDisplay.style.display = 'inline-block';
+        titleDisplay.parentNode.style.display = 'flex';
+        titleDisplay.parentNode.style.alignItems = 'center';
+
+        select.addEventListener('keydown', (e) => {
+            e.preventDefault();
+        })
+    }
+
+    // Handle user selection from dropdown
+    select.addEventListener('change', async (e) => {
+        currentChapterId = e.target.value;
+        select.blur();
+        await fetchAndRenderChapter(currentChapterId, currentManga.id, true);
+    });
+
+    select.innerHTML = '';
+    allChapters.forEach(chapter => {
+        const option = document.createElement('option');
+        option.value = chapter.id;
+        const chapNum = chapter.attributes.chapter ? `Chapter ${chapter.attributes.chapter}` : 'Oneshot';
+        option.textContent = chapNum;
+
+        // Highlight currently reading chapter
+        if (chapter.id === currentChapterId) option.selected = true;
+        select.appendChild(option);
+    });
+}
+
+async function fetchAndRenderChapter(chapterId, mangaId, isNewChapterClick) {
+    const pagesData = await MangaService.getChapterImages(chapterId);
+
+    if (!pagesData || pagesData.length === 0) {
+        showNoChaptersError();
+        return;
+    }
+
+    pages = pagesData;
+    document.getElementById('total-pages').textContent = pages.length;
+
+    currentPageIndex = 0;
+
+    // If they did not click a new chapter, resume their saved progress
+    if (!isNewChapterClick) {
+        const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
+        if (progress[mangaId] && progress[mangaId].chapterId === chapterId) {
+            currentPageIndex = progress[mangaId].pageIndex || 0;
+            if (currentPageIndex >= pages.length) currentPageIndex = pages.length - 1;
+        }
+    }
+
+    renderPage();
 }
 
 function showNoChaptersError() {
@@ -136,11 +207,20 @@ function renderPage() {
     window.scrollTo(0, 0);
 
     if (currentManga) {
+        let chapNum = '?';
+        if (allChapters && allChapters.length > 0) {
+            const currentChapter = allChapters.find(c => c.id == currentChapterId);
+            if (currentChapter) {
+                chapNum = currentChapter.attributes.chapter ? currentChapter.attributes.chapter : 'Oneshot';
+            }
+        }
         const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
         progress[currentManga.id] = {
             id: currentManga.id,
             title: currentManga.title,
             coverImage: currentManga.coverImage,
+            chapterId: currentChapterId,
+            chapterNum: chapNum,
             pageIndex: currentPageIndex,
             timestamp: Date.now()
         };
@@ -149,13 +229,27 @@ function renderPage() {
     }
 }
 
-function nextPage() {
+async function nextPage() {
     // Only go forward if we aren't on the last page
     if (currentPageIndex < pages.length - 1) {
         currentPageIndex++;
         renderPage();
     } else {
-        alert("You've reached the end of this chapter!");
+        const currentIndex = allChapters.findIndex(c => c.id === currentChapterId);
+
+        // Check if there's another chapter
+        if (currentIndex !== -1 && currentIndex + 1 < allChapters.length) {
+            const nextChapter = allChapters[currentIndex + 1];
+            currentChapterId = nextChapter.id;
+
+            // Update dropdown to match
+            const select = document.getElementById('chapter-select');
+            if (select) select.value = currentChapterId;
+
+            await fetchAndRenderChapter(currentChapterId, currentManga.id, true);
+        } else {
+            window.location.href = `index.html?openModal=${currentManga.id}`;
+        }
     }
 }
 

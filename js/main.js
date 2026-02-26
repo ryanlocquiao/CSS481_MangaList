@@ -4,11 +4,21 @@
  * Manages the UI components and connects the HTML layout to the MangaService API layer.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Wait for HTML to fully load before trying to manipulate it
     initDashboard();
     setupScrollListeners();
     setupModalListener();
+
+    // User redirect after finishing manga
+    const urlParams = new URLSearchParams(window.location.search);
+    const openModalId = urlParams.get('openModal');
+
+    if (openModalId) {
+        const manga = await MangaService.getMangaById(openModalId);
+        if (manga) openModal(manga);
+        window.history.replaceState(null, '', window.location.pathname);
+    }
 });
 
 async function initDashboard() {
@@ -175,6 +185,58 @@ function openModal(manga) {
         });
     }
 
+    // Select Chapters
+    let chaptersContainer = modal.querySelector('.modal-chapters-container');
+    if (!chaptersContainer) {
+        chaptersContainer = document.createElement('div');
+        chaptersContainer.className = 'modal-chapters-container';
+        chaptersContainer.innerHTML = `
+            <h3 class="modal-chapters-header">Chapters</h3>
+            <div id="modal-chapters-list" class="chapters-list"></div>
+        `;
+        modal.querySelector('.modal-details-col').appendChild(chaptersContainer);
+    }
+
+    const chaptersList = chaptersContainer.querySelector('#modal-chapters-list');
+    chaptersList.innerHTML = '<p style="color: #a3a3a3;">Loading chapters...</p>';
+
+    MangaService.getMangaFeed(manga.id).then(feedData => {
+        if (!feedData || !feedData.data || feedData.data.length === 0) {
+            chaptersList.innerHTML = '<p style="color: #a3a3a3;">No chapters available.</p>';
+            return;
+        }
+
+        let validChapters = feedData.data.filter(c => c.attributes.pages > 0 && !c.attributes.externalUrl);
+        validChapters.sort((a, b) => parseFloat(a.attributes.chapter || 0) - parseFloat(b.attributes.chapter || 0));
+
+        if (validChapters.length === 0) {
+            chaptersList.innerHTML = '<p style="color: #a3a3a3;">No readable English chapters found.</p>';
+            return;
+        }
+
+        chaptersList.innerHTML = '';
+        validChapters.forEach(chapter => {
+            const row = document.createElement('div');
+            row.className = 'chapter-row';
+
+            const chapNum = chapter.attributes.chapter ? `Chapter ${chapter.attributes.chapter}` : 'Oneshot';
+            const chapTitle = chapter.attributes.title ? `<span class="chapter-title">${chapter.attributes.title}</span>` : '';
+
+            row.innerHTML = `
+                <div class="chapter-info">
+                    <span class="chapter-number">${chapNum}</span>
+                    ${chapTitle}
+                </div>
+                <span style="font-size: 1.2rem;">&#9654;</span>
+            `;
+
+            row.onclick = () => {
+                window.location.href = `reader.html?mangaId=${manga.id}&chapterId=${chapter.id}`;
+            };
+            chaptersList.appendChild(row);
+        });
+    });
+
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
@@ -245,6 +307,10 @@ function loadContinueReading() {
         badge.style.fontSize = '0.75rem';
         badge.style.fontWeight = 'bold';
         badge.textContent = `Page ${manga.pageIndex + 1}`;
+        card.appendChild(badge);
+
+        const chapterText = manga.chapterNum ? `Ch. ${manga.chapterNum} | ` : '';
+        badge.textContent = `${chapterText}Page ${manga.pageIndex + 1}`;
         card.appendChild(badge);
 
         const titleElem = document.createElement('div');

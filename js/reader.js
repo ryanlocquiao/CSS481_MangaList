@@ -35,6 +35,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('next-page-btn').addEventListener('click', nextPage);
     document.getElementById('prev-page-btn').addEventListener('click', prevPage);
 
+    const slider = document.getElementById('page-slider');
+    if (slider) {
+        slider.addEventListener('input', (e) => {
+            currentPageIndex = parseInt(e.target.value);
+            renderPage();
+        });
+    }
+
     // Keyboard support for code above
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight') nextPage();
@@ -143,6 +151,9 @@ async function fetchAndRenderChapter(chapterId, mangaId, isNewChapterClick) {
     pages = pagesData;
     document.getElementById('total-pages').textContent = pages.length;
 
+    const slider = document.getElementById('page-slider');
+    if (slider) slider.max = pages.length - 1;
+
     currentPageIndex = 0;
 
     // If they did not click a new chapter, resume their saved progress
@@ -205,6 +216,13 @@ function renderPage() {
 
     // Scroll to top if prev page was tall
     window.scrollTo(0, 0);
+
+    const slider = document.getElementById('page-slider');
+    if (slider) {
+        slider.value = currentPageIndex;
+        const percent = pages.length > 1 ? (currentPageIndex / (pages.length - 1)) * 100 : 0;
+        slider.style.backgroundSize = `${percent}% 100%`;
+    }
 
     if (currentManga) {
         let chapNum = '?';

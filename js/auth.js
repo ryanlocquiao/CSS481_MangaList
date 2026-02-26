@@ -83,10 +83,13 @@ function setupAuthListeners() {
         try {
             if (isSignUpMode) {
                 await auth.createUserWithEmailAndPassword(email, password);
+                await CloudSync.saveToCloud();
             } else {
                 auth.signInWithEmailAndPassword(email, password);
+                await CloudSync.loadFromCloud();
             }
             closeModal();
+            window.location.reload();
         } catch (error) {
             authError.textContent = error.message;
             authError.style.display = 'block';
@@ -95,9 +98,14 @@ function setupAuthListeners() {
     });
 
     // Handle Log Out
-    document.getElementById('nav-logout-btn')?.addEventListener('click', (e) => {
+    document.getElementById('nav-logout-btn')?.addEventListener('click', async (e) => {
         e.preventDefault();
-        auth.signOut();
+        await auth.signOut();
+
+        localStorage.removeItem('mangaFavorites');
+        localStorage.removeItem('readingProgress');
+
+        window.location.href = 'index.html';
     });
 
     // Global Firebase State Observer

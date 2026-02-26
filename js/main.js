@@ -156,6 +156,7 @@ function openModal(manga) {
         }
 
         localStorage.setItem('mangaFavorites', JSON.stringify(favorites));
+        CloudSync.saveToCloud();
     }
 
     coverImage.style.backgroundImage = `url('${manga.coverImage}')`;

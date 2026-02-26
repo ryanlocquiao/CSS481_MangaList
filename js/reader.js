@@ -113,6 +113,7 @@ function renderPage() {
             timestamp: Date.now()
         };
         localStorage.setItem('readingProgress', JSON.stringify(progress));
+        CloudSync.saveToCloud();
     }
 }
 

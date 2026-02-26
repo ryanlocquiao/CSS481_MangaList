@@ -99,6 +99,8 @@ function openModal(manga) {
 
         localStorage.setItem('mangaFavorites', JSON.stringify(favorites));
 
+        CloudSync.saveToCloud();
+
         // Refresh background if title removed
         loadFavorites();
     };

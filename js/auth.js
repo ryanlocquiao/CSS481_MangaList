@@ -16,7 +16,10 @@ function injectAuthModel() {
                 <h2 id="auth-title">Sign In</h2>
                 <form id="auth-form">
                     <input type="email" id="auth-email" placeholder="Email Address" required>
-                    <input type="password" id="auth-password" placeholder="Password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="auth-password" placeholder="Password" required>
+                        <span id="toggle-password" class="toggle-password">Show</span>
+                    </div>
                     <button type="submit" class="btn-read" style="width: 100%; margin-top: 20px; padding: 14px;">Sign In</button>
                     <p id="auth-error" style="color: #e50914; font-size: 0.85rem; margin-top: 10px; display: none;"></p>
                     <p class="auth-switch"><span id="auth-toggle-pretext">New to MangaList? </span><span id="auth-toggle">Sign up now.</span></p>
@@ -49,6 +52,8 @@ function setupAuthListeners() {
         document.body.style.overflow = 'auto';
         authForm.reset();
         authError.style.display = 'none';
+        passwordInput.setAttribute('type', 'password');
+        togglePasswordBtn.textContent = 'Show';
     };
 
     document.getElementById('close-auth-btn').addEventListener('click', closeModal);
@@ -71,6 +76,16 @@ function setupAuthListeners() {
         authError.style.display = 'none';
     });
 
+    // Toggle Show/Hide Password
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('auth-password');
+
+    togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        togglePasswordBtn.textContent = type === 'password' ? 'Show' : 'Hide';
+    });
+
     // Form submission communication to Firebase
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -85,7 +100,7 @@ function setupAuthListeners() {
                 await auth.createUserWithEmailAndPassword(email, password);
                 await CloudSync.saveToCloud();
             } else {
-                auth.signInWithEmailAndPassword(email, password);
+                await auth.signInWithEmailAndPassword(email, password);
                 await CloudSync.loadFromCloud();
             }
             closeModal();

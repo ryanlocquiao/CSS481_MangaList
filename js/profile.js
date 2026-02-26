@@ -5,7 +5,13 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadProfileStats();
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('profile-email').textContent = user.email;
+
+            loadProfileStats();
+        }
+    });
 });
 
 function loadProfileStats() {

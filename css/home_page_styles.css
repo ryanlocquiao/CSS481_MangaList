@@ -663,3 +663,31 @@ nav a:hover, nav a.active {
 #auth-toggle:hover {
     text-decoration: underline;
 }
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.password-wrapper input {
+    margin-bottom: 0;
+    padding-right: 60px;
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-59%);
+    color: #8c8c8c;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s ease;
+}
+
+.toggle-password:hover {
+    color: white;
+}

@@ -45,8 +45,7 @@ async function loadFirstChapter(mangaId) {
         const feedData = await MangaService.getMangaFeed(mangaId);
 
         if (!feedData.data || feedData.data.length === 0) {
-            alert("Sorry, no English chapters are available for this manga yet.");
-            window.location.href = 'index.html';
+            showNoChaptersError();
             return;
         }
 
@@ -56,8 +55,7 @@ async function loadFirstChapter(mangaId) {
         );
 
         if (!validChapter) {
-            alert("Sorry, the chapters for this manga are officially licensed/externally hosted and cannot be read here.");
-            window.location.href = 'index.html';
+            showNoChaptersError();
             return;
         }
 
@@ -66,7 +64,7 @@ async function loadFirstChapter(mangaId) {
         const pagesData = await MangaService.getChapterImages(chapterId);
 
         if (!pagesData || pagesData.length === 0) {
-            alert("MangaDex is having trouble loading this chapter right now.");
+            showNoChaptersError();
             return;
         }
 
@@ -84,8 +82,42 @@ async function loadFirstChapter(mangaId) {
         renderPage();
     } catch (error) {
         console.error("CRITICAL ERROR loading chapter:", error);
-        alert("There was an error loading the manga pages.");
+        showNoChaptersError();
     }
+}
+
+function showNoChaptersError() {
+    const imgElem = document.getElementById('reader-image');
+    const prevBtn = document.getElementById('prev-page-btn');
+    const nextBtn = document.getElementById('next-page-btn');
+    
+    if (imgElem) imgElem.style.display = 'none';
+    if (prevBtn) prevBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+
+    const canvas = document.querySelector('.theater-canvas');
+    let errorMsg = document.getElementById('reader-error-msg');
+    
+    if (!errorMsg) {
+        errorMsg = document.createElement('div');
+        errorMsg.id = 'reader-error-msg';
+        errorMsg.style.color = '#a3a3a3';
+        errorMsg.style.fontSize = '1.25rem';
+        errorMsg.style.textAlign = 'center';
+        errorMsg.style.padding = '40px';
+        errorMsg.style.maxWidth = '600px';
+        errorMsg.style.lineHeight = '1.6';
+        errorMsg.style.position = 'absolute';
+        errorMsg.style.top = '50%';
+        errorMsg.style.left = '50%';
+        errorMsg.style.transform = 'translate(-50%, -50%)';
+        canvas.appendChild(errorMsg);
+    }
+
+    errorMsg.textContent = "Sorry, there are no English Chapters available or this Manga is licensed.";
+
+    document.getElementById('current-page').textContent = '0';
+    document.getElementById('total-pages').textContent = '0';
 }
 
 function renderPage() {

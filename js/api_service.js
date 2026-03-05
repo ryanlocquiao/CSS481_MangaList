@@ -36,7 +36,7 @@ function normalizeMangaData(manga) {
     return {
         id: manga.id,
         title: attributes.title.en || Object.values(attributes.title)[0],
-        description: attributes.description ? (attributes.description.en || "No description available.") : "No description available",
+        description: attributes.description?.en || "No description available.",
         status: attributes.status,
         tags: attributes.tags.map(tag => tag.attributes.name.en).slice(0, 5),    // Create a limit for tags for now until we can test them and find a good limit or have no limit
         coverImage: coverFileName

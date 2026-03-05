@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Wait for HTML to fully load before trying to manipulate it
     initDashboard();
     setupScrollListeners();
-    setupModalListener();
 
     // User redirect after finishing manga
     const urlParams = new URLSearchParams(window.location.search);
@@ -48,197 +47,25 @@ async function loadHeroBanner(titleQuery) {
 
     if (results.length > 0) {
         const manga = results.find(m => m.author.includes('Fukuda') || m.author.includes('Shinichi')) || results[0];
-        const banner = document.querySelector('.hero-banner');
-        const titleElem = document.querySelector('.hero-title');
-        const synopsisElem = document.querySelector('.hero-synopsis');
-        const moreInfoBtn = document.querySelector('.btn-info');
-
-        // Switch to Theater Mode Reader
-        const readBtn = document.querySelector('.hero-content .btn-read');
-        readBtn.onclick = () => {
-            window.location.href = `reader.html?mangaId=${manga.id}`;
-        }
-
-        banner.style.backgroundImage = `url('${manga.coverImage}')`;
-        titleElem.textContent = manga.title;
-
-        // Truncate long descriptions
-        const shortDesc = manga.description.length > 150
-            ? manga.description.substring(0, 150) + '...'
+        
+        document.querySelector('.hero-banner').style.backgroundImage = `url('${manga.coverImage}')`;
+        document.querySelector('.hero-title').textContent = manga.title;
+        document.querySelector('.hero-synopsis').textContent = manga.description.length > 150 
+            ? manga.description.substring(0, 150) + '...' 
             : manga.description;
-        synopsisElem.textContent = shortDesc;
 
-        moreInfoBtn.onclick = () => openModal(manga);
-    } else {
-        console.error("No manga found for the hero banner.");
+        document.querySelector('.hero-content .btn-read').onclick = () => window.location.href = `reader.html?mangaId=${manga.id}`;
+        document.querySelector('.btn-info').onclick = () => ModalController.open(manga);
     }
 }
 
 async function populateRow(containerElem, query, limit, genre_id) {
-    // Fetch data from API service
     const mangaList = await MangaService.searchManga(query, limit, genre_id);
-
-    // Clear out gray HTML placeholder cards
     containerElem.innerHTML = '';
-
-    // Generate new dynamic cards
     mangaList.forEach(manga => {
-        // Creating wrapper container
-        const itemContainer = document.createElement('div');
-        itemContainer.className = 'manga-item';
-
-        // Creating card cover image
-        const card = document.createElement('div');
-        card.className = 'manga-card';
-        card.style.backgroundImage = `url('${manga.coverImage}')`;
-        card.style.backgroundSize = 'cover';
-        card.style.backgroundPosition = 'center';
-        card.title = manga.title;
-
-        // This adds the title text below the card
-        const titleElem = document.createElement('div');
-        titleElem.className = 'manga-title-below';
-        titleElem.textContent = manga.title;
-        titleElem.title = manga.title;
-
-        // Listens to both image and text to open the modal
-        card.addEventListener('click', () => openModal(manga));
-        titleElem.addEventListener('click', () => openModal(manga));
-
-        itemContainer.appendChild(card);
-        itemContainer.appendChild(titleElem);
-        containerElem.appendChild(itemContainer);
+        const card = UIHelper.createMangaCard(manga, (m) => ModalController.open(m));
+        containerElem.appendChild(card);
     });
-}
-
-/**
- * Modal (More Info Popup) Logic
- */
-
-function setupModalListener() {
-    const closeBtn = document.querySelector('.close-btn');
-    const overlay = document.querySelector('.modal-overlay');
-
-    closeBtn.addEventListener('click', closeModal);
-    overlay.addEventListener('click', closeModal);
-}
-
-function openModal(manga) {
-    const modal = document.getElementById('manga-modal');
-    const coverImage = modal.querySelector('.modal-cover-image');
-    const title = modal.querySelector('.modal-title');
-    const rating = modal.querySelector('.modal-rating');
-    const status = modal.querySelector('.modal-status');
-    const synopsis = modal.querySelector('.modal-synopsis');
-    const tagsContainer = modal.querySelector('.modal-tags');
-
-    // Switch to Theater Mode Reader
-    const readBtn = modal.querySelector('.btn-read');
-    readBtn.onclick = () => {
-        window.location.href = `reader.html?mangaId=${manga.id}`;
-    }
-
-    // Favorites Logic
-    const favBtn = modal.querySelector('.btn-favorite');
-    const bookmarkIcon = modal.querySelector('#bookmark-icon');
-
-    // Pull from browser's memory
-    let favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
-
-    let isFav = favorites.some(fav => fav.id === manga.id);
-    if (isFav) {
-        bookmarkIcon.src = 'assets/bookmark-filled.png';
-    } else {
-        bookmarkIcon.src = 'assets/bookmark-empty.png';
-    }
-
-    favBtn.onclick = () => {
-        // Fetch latest list
-        favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
-        isFav = favorites.some(fav => fav.id === manga.id);
-
-        if (isFav) {
-            favorites = favorites.filter(fav => fav.id !== manga.id);
-            bookmarkIcon.src = 'assets/bookmark-empty.png';
-        } else {
-            favorites.push(manga);
-            bookmarkIcon.src = 'assets/bookmark-filled.png';
-        }
-
-        localStorage.setItem('mangaFavorites', JSON.stringify(favorites));
-        CloudSync.saveToCloud();
-    }
-
-    coverImage.style.backgroundImage = `url('${manga.coverImage}')`;
-    title.textContent = manga.title;
-    synopsis.textContent = manga.description;
-    rating.textContent = manga.rating ? manga.rating.toUpperCase() : 'N/A';
-    status.textContent = manga.status ? manga.status.charAt(0).toUpperCase() + manga.status.slice(1) : 'Unknown';
-
-    tagsContainer.innerHTML = '';
-    if (manga.tags && manga.tags.length > 0) {
-        manga.tags.forEach(tagText => {
-            const tagSpan = document.createElement('span');
-            tagSpan.className = 'tag';
-            tagSpan.textContent = tagText;
-            tagsContainer.appendChild(tagSpan);
-        });
-    }
-
-    // Select Chapters
-    let chaptersContainer = modal.querySelector('.modal-chapters-container');
-    if (!chaptersContainer) {
-        chaptersContainer = document.createElement('div');
-        chaptersContainer.className = 'modal-chapters-container';
-        chaptersContainer.innerHTML = `
-            <h3 class="modal-chapters-header">Chapters</h3>
-            <div id="modal-chapters-list" class="chapters-list"></div>
-        `;
-        modal.querySelector('.modal-details-col').appendChild(chaptersContainer);
-    }
-
-    const chaptersList = chaptersContainer.querySelector('#modal-chapters-list');
-    chaptersList.innerHTML = '<p style="color: #a3a3a3;">Loading chapters...</p>';
-
-    MangaService.getMangaFeed(manga.id).then(feedData => {
-        if (!feedData || !feedData.data || feedData.data.length === 0) {
-            chaptersList.innerHTML = '<p style="color: #a3a3a3;">No chapters available.</p>';
-            return;
-        }
-
-        let validChapters = feedData.data.filter(c => c.attributes.pages > 0 && !c.attributes.externalUrl);
-        validChapters.sort((a, b) => parseFloat(a.attributes.chapter || 0) - parseFloat(b.attributes.chapter || 0));
-
-        if (validChapters.length === 0) {
-            chaptersList.innerHTML = '<p style="color: #a3a3a3;">No readable English chapters found.</p>';
-            return;
-        }
-
-        chaptersList.innerHTML = '';
-        validChapters.forEach(chapter => {
-            const row = document.createElement('div');
-            row.className = 'chapter-row';
-
-            const chapNum = chapter.attributes.chapter ? `Chapter ${chapter.attributes.chapter}` : 'Oneshot';
-            const chapTitle = chapter.attributes.title ? `<span class="chapter-title">${chapter.attributes.title}</span>` : '';
-
-            row.innerHTML = `
-                <div class="chapter-info">
-                    <span class="chapter-number">${chapNum}</span>
-                    ${chapTitle}
-                </div>
-                <span style="font-size: 1.2rem;">&#9654;</span>
-            `;
-
-            row.onclick = () => {
-                window.location.href = `reader.html?mangaId=${manga.id}&chapterId=${chapter.id}`;
-            };
-            chaptersList.appendChild(row);
-        });
-    });
-
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
 }
 
 function setupScrollListeners() {
@@ -258,13 +85,6 @@ function setupScrollListeners() {
     });
 }
 
-function closeModal() {
-    const modal = document.getElementById('manga-modal');
-    modal.classList.add('hidden');
-    document.body.style.overflow = 'auto';
-    document.body.style.overflowX = 'hidden';
-}
-
 function loadContinueReading() {
     const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
     const readingList = Object.values(progress).sort((a, b) => b.timestamp - a.timestamp);
@@ -273,60 +93,23 @@ function loadContinueReading() {
     if (readingList.length === 0) return;
 
     const dashboard = document.querySelector('.dashboard');
-
     const row = document.createElement('div');
     row.className = 'row';
-
-    const title = document.createElement('h3');
-    title.className = 'row-title';
-    title.textContent = 'Continue Reading';
-
+    row.innerHTML = `<h3 class="row-title">Continue Reading</h3>`;
+    
     const container = document.createElement('div');
     container.className = 'row-container';
 
     readingList.forEach(manga => {
-        const itemContainer = document.createElement('div');
-        itemContainer.className = 'manga-item';
-
-        const card = document.createElement('div');
-        card.className = 'manga-card';
-        card.style.backgroundImage = `url('${manga.coverImage}')`;
-        card.style.backgroundSize = 'cover';
-        card.style.backgroundPosition = 'center';
-        card.style.position = 'relative';
-        card.title = manga.title;
-
-        const badge = document.createElement('div');
-        badge.style.position = 'absolute';
-        badge.style.bottom = '8px';
-        badge.style.right = '8px';
-        badge.style.backgroundColor = 'rgba(229, 9, 20, 0.9)';
-        badge.style.color = 'white';
-        badge.style.padding = '4px 8px';
-        badge.style.borderRadius = '4px';
-        badge.style.fontSize = '0.75rem';
-        badge.style.fontWeight = 'bold';
-        badge.textContent = `Page ${manga.pageIndex + 1}`;
-        card.appendChild(badge);
-
         const chapterText = manga.chapterNum ? `Ch. ${manga.chapterNum} | ` : '';
-        badge.textContent = `${chapterText}Page ${manga.pageIndex + 1}`;
-        card.appendChild(badge);
+        const badgeText = `${chapterText}Page ${manga.pageIndex + 1}`;
 
-        const titleElem = document.createElement('div');
-        titleElem.className = 'manga-title-below';
-        titleElem.textContent = manga.title;
-
-        card.addEventListener('click', () => window.location.href = `reader.html?mangaId=${manga.id}`);
-        titleElem.addEventListener('click', () => window.location.href = `reader.html?mangaId=${manga.id}`);
-
-        itemContainer.appendChild(card);
-        itemContainer.appendChild(titleElem);
-        container.appendChild(itemContainer);
+        const onClick = (m) => window.location.href = `reader.html?mangaId=${m.id}`;
+        
+        const card = UIHelper.createMangaCard(manga, onClick, badgeText);
+        container.appendChild(card);
     });
 
-    row.appendChild(title);
     row.appendChild(container);
-
     dashboard.insertBefore(row, dashboard.firstChild);
 }

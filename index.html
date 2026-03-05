@@ -74,51 +74,14 @@
 
     </main>
 
-    <div id="manga-modal" class="modal hidden">
-        <div class="modal-overlay"></div>
-        <div class="modal-content wide-layout">
-            <button class="close-btn">&times;</button>
-
-            <div class="modal-cover-col">
-                <div class="modal-cover-image"></div>
-            </div>
-
-            <div class="modal-details-col">
-                <h2 class="modal-title">Manga Title</h2>
-
-                <div class="modal-meta">
-                    <div class="meta-group">
-                        <span class="meta-label">Rating:</span>
-                        <span class="modal-rating">SAFE</span>
-                    </div>
-
-                    <div class="meta-group">
-                        <span class="meta-label">Status:</span>
-                        <span class="modal-status">COMPLETED</span>
-                    </div>
-                </div>
-
-                <p class="modal-synopsis">Synopsis goes here...</p>
-
-                <div class="modal-tags">
-                    </div>
-
-                <div class="modal-actions">
-                    <button class="btn-read">Read Now</button>
-                    <button class="btn-favorite" title="Add to Favorites">
-                        <img id="bookmark-icon" src="assets/bookmark-empty.png" alt="Bookmark" width="22" height="22">
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script src="js/navbar.js"></script>
     <script src="js/api_service.js"></script>
+    <script src="js/ui_helper.js"></script>
+    <script src="js/modal.js"></script>
     <script src="js/main.js"></script>
     <script src="js/firebase-init.js"></script>
     <script src="js/auth.js"></script>

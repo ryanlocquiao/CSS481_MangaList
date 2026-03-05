@@ -1,3 +1,12 @@
+/**
+ * js/firebase-init.js - Firebase Initialization Configuration
+ * 
+ * Initializes the connection to the Google Firebase backend
+ * using public API keys.
+ * Exposes the global db and auth objects used by the rest of
+ * the application.
+ */
+
 const firebaseConfig = {
     apiKey: "AIzaSyBgdm1kkIzDK177xZfkGMKK8BB6LCIpXuo",
     authDomain: "mangalist-af487.firebaseapp.com",

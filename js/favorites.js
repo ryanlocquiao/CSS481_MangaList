@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => loadFavorites());
 
 window.addEventListener('favoritesUpdated', () => loadFavorites());
 
+/**
+ * 
+ * 
+ */
 function loadFavorites() {
     const gridContainer = document.getElementById('favorites-grid');
 

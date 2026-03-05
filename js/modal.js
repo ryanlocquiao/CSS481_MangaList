@@ -7,6 +7,10 @@
  */
 
 const ModalController = {
+    /**
+     * Injects the empty HTML shell of the modal into the
+     * document body and sets up the universal close listeners.
+     */
     init() {
         // Only inject the HTML if it doesn't already exist
         if (document.getElementById('manga-modal')) return;
@@ -53,6 +57,12 @@ const ModalController = {
         document.querySelector('#manga-modal .modal-overlay').addEventListener('click', this.close);
     },
 
+    /**
+     * Populates the modal with data, handles the favorite toggle
+     * logic, and triggers the asynchronous fetch for the chapter
+     * list.
+     * @param {Object} manga = The active manga data object. 
+     */
     async open(manga) {
         const modal = document.getElementById('manga-modal');
         const coverImage = modal.querySelector('.modal-cover-image');

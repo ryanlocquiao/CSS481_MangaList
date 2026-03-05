@@ -1,5 +1,9 @@
 /**
  * js/auth.js - Firebase Authentication Controller
+ * 
+ * Manages user session state, handles the UI for the
+ * login/signup modal, and communicates directly with Firebase
+ * Authentication services.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -7,6 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAuthListeners();
 });
 
+/**
+ * Dynamically injects the Authentication Modal HTML into the DOM.
+ * This approach keeps the base HTML files clean and ensures the
+ * auth interface is globally available on any page that includes
+ * this script.
+ */
 function injectAuthModel() {
     const modalHTML = `
         <div id="auth-modal" class="modal hidden" style="z-index: 2000;">
@@ -30,6 +40,11 @@ function injectAuthModel() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
+/**
+ * Wires up all event listeners for the authentication flow,
+ * including form submission, modal toggling, and the persistent
+ * Firebase state observer.
+ */
 function setupAuthListeners() {
     let isSignUpMode = false;
 

@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+/**
+ * Master initialization function for the Home Page content.
+ */
 async function initDashboard() {
     // Load the Hero Banner with a featured title
     // Will probably change to be dynamic
@@ -42,6 +45,10 @@ async function initDashboard() {
     loadContinueReading();
 }
 
+/**
+ * Fetches data for the Hero Banner and dynamically updated the UI.
+ * @param {string} titleQuery - The title to feature in the banner. 
+ */
 async function loadHeroBanner(titleQuery) {
     const results = await MangaService.searchManga(titleQuery, 5, null)
 
@@ -59,6 +66,14 @@ async function loadHeroBanner(titleQuery) {
     }
 }
 
+/**
+ * Fetches manga by category and injects Manga Cards into a
+ * target row.
+ * @param {HTMLElement} containerElem - The flex container to populate.
+ * @param {string|null} query - Optional search string. 
+ * @param {number} limit - Number of items to fetch.
+ * @param {string} genre_id - MangaDex tag UUID.
+ */
 async function populateRow(containerElem, query, limit, genre_id) {
     const mangaList = await MangaService.searchManga(query, limit, genre_id);
     containerElem.innerHTML = '';
@@ -68,6 +83,10 @@ async function populateRow(containerElem, query, limit, genre_id) {
     });
 }
 
+/**
+ * Calculates and executes smooth horizontal scrolling for the
+ * dashboard rows.
+ */
 function setupScrollListeners() {
     const dashboard = document.querySelector('.dashboard');
 
@@ -85,6 +104,10 @@ function setupScrollListeners() {
     });
 }
 
+/**
+ * Analyzes local storage progress data to generate the
+ * Continue Reading row.
+ */
 function loadContinueReading() {
     const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
     const readingList = Object.values(progress).sort((a, b) => b.timestamp - a.timestamp);

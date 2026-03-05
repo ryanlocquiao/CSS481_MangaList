@@ -8,7 +8,8 @@
 const CloudSync = {
     /**
      * Pushes the current state of LocalStorage up to the cloud.
-     * Triggered whenever a user favorites a manga or turns a page in the reader.
+     * Triggered whenever a user favorites a manga or turns a
+     * page in the reader.
      */
     async saveToCloud() {
         const user = auth.currentUser;
@@ -31,7 +32,8 @@ const CloudSync = {
     },
 
     /**
-     * Pulls the user's saved data from the cloud and injects it into LocalStorage.
+     * Pulls the user's saved data from the cloud and injects it
+     * into LocalStorage.
      * Triggered immediately upon successful login.
      */
     async loadFromCloud() {
@@ -40,7 +42,7 @@ const CloudSync = {
 
         try {
             const doc = await db.collection('users').doc(user.uid).get();
-            
+
             if (doc.exists) {
                 const data = doc.data();
 

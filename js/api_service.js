@@ -1,19 +1,29 @@
 /**
  * js/api_service.js - Data Fetching Service
  * 
- * Acts as specialized middleware that manages API integration, data normalization, and communication with the backend.
+ * Acts as specialized middleware that manages API integration,
+ * data normalization, and communication with the backend.
+ * By routing all MangaDex API calls through this single service,
+ * we ensure that data is fetched and normalized consistently
+ * across the entire application.
  */
 
-// Base Configuration
-// const BASE_URL = 'https://api.mangadex.org';
+// --- Configuration ---
+// The BASE_URL points to the local Flask proxy server to bypass browser CORS restrictions.
+// TODO for Production: Change before deployment
 const BASE_URL = 'http://127.0.0.1:5000';
-// const COVER_URL = 'https://uploads.mangadex.org/covers';
 const COVER_URL = `${BASE_URL}/cover`;
 
 /**
  * Data Normalization Layer
  * 
- * Transforms complex MangaDex API responses into a clean, flat object for the MangaList UI.
+ * MangaDex returns complex JSON responses. This helper function
+ * extracts only the necessary data and flattens it into a
+ * simple, predictable object that the rest of the application
+ * can easily consume.
+ * 
+ * @param   {Object} manga - The raw manga object from the MangaDex API.
+ * @returns {Object} - A clean, flattened manga object.
  */
 function normalizeMangaData(manga) {
     // Extract details needed for manga data
@@ -38,29 +48,29 @@ function normalizeMangaData(manga) {
 }
 
 /**
- * Data Fetching Service
+ * MangaService Object
  * 
  * Specialized middleware that manages API integration.
  */
 const MangaService = {
     /**
-     * Search/Browse Manga
+     * Searches for manga based on a query or fetches a list by genre.
      * 
-     * @param {string} query - Search term (e.g., "My Dress Up Darling") or null for no title
-     * @param {number} limit - Items per page
-     * @param {string} genre_id - Genre ID to filter by
+     * @param {string|null} query - Search term (e.g., "My Dress Up Darling") or null for no title.
+     * @param {number} limit - Max numbers of items to return.
+     * @param {string|null} genre_id - UUID of the genre to filter by.
+     * @returns {Promise<Array>} - Array of normalized manga objects.
      */
     async searchManga(query, limit, genre_id) {
         try {
             // Include cover_art and author in includes[] so we avoid extra API calls
             const url = new URL(`${BASE_URL}/search`);
-            if (query) {
-                url.searchParams.append('title', query);
-            }
-            if (genre_id) {
-                url.searchParams.append('includedTags[]', genre_id);
-            }
+
+            // Append query params dynamically only if they are provided
+            if (query) url.searchParams.append('title', query);
+            if (genre_id) url.searchParams.append('includedTags[]', genre_id);
             url.searchParams.append('limit', limit);
+
             const response = await fetch(url);
             const data = await response.json();
 
@@ -79,9 +89,11 @@ const MangaService = {
     },
 
     /**
-     * Get a specific Manga by its ID
+     * Fetches detailed data for a specific Manga by its UUID.
+     * Used primarily when opening a modal directly via URL params.
      * 
-     * @param {string} mangaId
+     * @param {string} mangaId - The MangaDex UUID.
+     * @returns {Promise<Object|null>} - A single normalized manga object or null.
      */
     async getMangaById(mangaId) {
         try {
@@ -98,9 +110,11 @@ const MangaService = {
     },
 
     /**
-     * Get Chapter Pages (For Theater Mode)
+     * Fetches the image URLs for a specific chapter.
+     * Used by the Theater Mode (reader.js) to construct the image paths.
      * 
-     * @param {string} chapterId
+     * @param {string} chapterId - The MangaDex Chapter UUID.
+     * @returns {Promise<Array<string>>} - Array of complete image URLs.
      */
     async getChapterImages(chapterId) {
         try {
@@ -121,9 +135,11 @@ const MangaService = {
     },
 
     /**
-     * Get the Chapter Feed for a Manga
+     * Fetches the list of English chapters for a specific manga.
+     * Used to build the chapter list in the modals.
      * 
-     * @param {string} mangaId
+     * @param {string} mangaId - The MangaDex Manga UUID.
+     * @returns {Promise<Object|null>} - The raw feed data object.
      */
     async getMangaFeed(mangaId) {
         try {

@@ -1,15 +1,23 @@
 /**
  * js/navbar.js - Shared Global Navigation Component
+ * 
+ * Dynamically injects the Navigation Bar into any page that contains a navbar.
+ * This ensures UI consistency across the app without needing to duplicate
+ * HTML code in every file.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     renderNavbar();
 });
 
+/**
+ * Builds and injects the Navbar HTML.
+ */
 function renderNavbar() {
     const navContainer = document.getElementById('navbar-container');
     if (!navContainer) return;
 
+    // Find the current page to highlight the correct link
     const path = window.location.pathname;
     const page = path.split('/').pop();
 
@@ -52,6 +60,9 @@ function renderNavbar() {
     setupSearch();
 }
 
+/**
+ * Handles the Avatar click to show the user profile menu.
+ */
 function setupDropdown() {
     const avatar = document.querySelector('.avatar');
     const dropdown = document.querySelector('.dropdown-menu');
@@ -70,6 +81,11 @@ function setupDropdown() {
     }
 }
 
+/**
+ * Implements a debounced API search engine.
+ * Instead of firing an API request for every single keystroke, it waits
+ * until the user stops typing for 500ms.
+ */
 function setupSearch() {
     const searchInput = document.getElementById('search-input');
     const searchDropdown = document.getElementById('search-dropdown');
@@ -100,6 +116,7 @@ function setupSearch() {
                     return;
                 }
 
+                // Populate search results
                 results.forEach(manga => {
                     const item = document.createElement('div');
                     item.className = 'search-result-item';
@@ -111,6 +128,7 @@ function setupSearch() {
                         </div>
                     `;
 
+                    // Handle clicking a search result
                     item.addEventListener('click', () => {
                         if (typeof openModal === 'function') {
                             openModal(manga);

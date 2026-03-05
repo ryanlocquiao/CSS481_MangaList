@@ -1,13 +1,20 @@
 /**
  * js/cloud_sync.js - Firebase Firestore Data Synchronization
+ * 
+ * Handles bidirectional syncing of user data (Favorites & Reading Progress)
+ * between the browser's LocalStorage and Firebase Firestore.
  */
 
 const CloudSync = {
-    // Push local data to cloud
+    /**
+     * Pushes the current state of LocalStorage up to the cloud.
+     * Triggered whenever a user favorites a manga or turns a page in the reader.
+     */
     async saveToCloud() {
         const user = auth.currentUser;
-        if (!user) return;
+        if (!user) return;  // Exit silently if the user is a guest
 
+        // Retrieve current local state
         const favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
         const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
 
@@ -23,13 +30,17 @@ const CloudSync = {
         }
     },
 
-    // Pull cloud data to device
+    /**
+     * Pulls the user's saved data from the cloud and injects it into LocalStorage.
+     * Triggered immediately upon successful login.
+     */
     async loadFromCloud() {
         const user = auth.currentUser;
         if (!user) return;
 
         try {
             const doc = await db.collection('users').doc(user.uid).get();
+            
             if (doc.exists) {
                 const data = doc.data();
 

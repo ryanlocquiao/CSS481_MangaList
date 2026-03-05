@@ -130,8 +130,8 @@ function setupSearch() {
 
                     // Handle clicking a search result
                     item.addEventListener('click', () => {
-                        if (typeof openModal === 'function') {
-                            openModal(manga);
+                        if (typeof ModalController !== 'undefined') {
+                            ModalController.open(manga);
                             searchDropdown.classList.add('hidden');
                             searchInput.value = '';
                         } else {

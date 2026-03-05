@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (openModalId) {
         const manga = await MangaService.getMangaById(openModalId);
-        if (manga) openModal(manga);
+        if (manga) ModalController.open(manga);
         window.history.replaceState(null, '', window.location.pathname);
     }
 });

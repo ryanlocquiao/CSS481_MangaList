@@ -14,9 +14,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+/**
+ * Calculates and displays user statistics based on their saved
+ * data.
+ */
 function loadProfileStats() {
     const favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
-    document.getElementById('fav-count').textContent = favorites.length;
+    const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
+
+    const favCountElem = document.getElementById('fav-count');
+    if (favCountElem) favCountElem.textContent = favorites.length;
+
+    const totalReadElem = document.getElementById('read-count');
+    if (totalReadElem) totalReadElem.textContent = Object.keys(progress).length;
 }
 
 // TODO: Create function to edit bio

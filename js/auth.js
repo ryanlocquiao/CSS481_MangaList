@@ -65,6 +65,10 @@ function setupAuthListeners() {
         document.body.style.overflow = 'hidden';
     })
 
+    // Toggle Show/Hide Password
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('auth-password');
+
     const closeModal = () => {
         authModal.classList.add('hidden');
         document.body.style.overflow = 'auto';
@@ -93,10 +97,6 @@ function setupAuthListeners() {
         }
         authError.style.display = 'none';
     });
-
-    // Toggle Show/Hide Password
-    const togglePasswordBtn = document.getElementById('toggle-password');
-    const passwordInput = document.getElementById('auth-password');
 
     togglePasswordBtn.addEventListener('click', () => {
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';

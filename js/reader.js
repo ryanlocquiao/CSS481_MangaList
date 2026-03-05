@@ -103,7 +103,7 @@ function setupNavigationControls() {
         });
     }
 
-    // Keyboard arrow key support
+    // Keyboard arrow key and fullscreen support
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight') {
             if (ReaderState.direction === 'rtl') prevPage(); else nextPage();
@@ -111,7 +111,18 @@ function setupNavigationControls() {
         if (e.key === 'ArrowLeft') {
             if (ReaderState.direction === 'rtl') nextPage(); else prevPage();
         }
-        if (e.key === 'Escape') window.location.href = 'index.html';
+        if (e.key === 'Escape') {
+            // Only redirect to home if they aren't in fullscreen
+            if (!document.fullscreenElement) window.location.href = 'index.html';
+        }
+        if (e.key === 'f' || e.key === 'F') {
+            toggleFullscreen();
+        }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        if (document.fullscreenElement) document.body.classList.add('fullscreen-mode');
+        else document.body.classList.remove('fullscreen-mode');
     });
 }
 
@@ -416,5 +427,20 @@ function prevPage() {
         // Math.max prevents the step from pushing the index into negative numbers
         ReaderState.currentPageIndex = Math.max(0, ReaderState.currentPageIndex - step);
         renderPage();
+    }
+}
+
+/**
+ * Toggles the browser's native fullscreen mode.
+ */
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
     }
 }

@@ -117,6 +117,7 @@ body {
 .page-counter {
     color: #a3a3a3;
     font-size: 1.1rem;
+    font-weight: bold;
     letter-spacing: 1px;
 }
 
@@ -310,4 +311,8 @@ body {
 .close-btn:hover {
     color: white;
     transform: scale(1.1);
+}
+
+body.fullscreen-mode .top-hud {
+    display: none !important;
 }

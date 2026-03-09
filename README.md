@@ -19,12 +19,20 @@ To properly evaluate the platform and walk through the proposed tasks, you will 
 ### Step 1: Install Backend Dependencies
 The backend proxy requires a few standard Python libraries to route requests securely. Open your terminal, navigate to the root of the project directory, and run the following command:
 
+### (Windows)
 `pip install flask flask-cors requests`
+
+### (Mac OS)
+`pip3 install flask flask-cors requests`
 
 ### Step 2: Start the Python Proxy Server
 While still in your terminal at the project root, start the Flask proxy server:
 
+### (Windows)
 `python app.py`
+
+### (Mac OS)
+`python3 app.py`
 
 You should see a terminal message confirming: `✅ MangaList Python Backend is running on http://127.0.0.1:5000`. **Leave this terminal window running in the background.**
 

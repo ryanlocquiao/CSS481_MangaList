@@ -54,7 +54,6 @@ Once the app is running, you can test the core features outlined in our proposal
 ## ✨ Key Features
 * **Cinematic Browsing:** A dark-mode, visual-first interface featuring dynamic "New Release" and genre-based scrollable rows.
 * **Theater Mode Reader:** An immersive, distraction-free reader with smart image pre-loading for instantaneous page turns.
-    * Supports both traditional pagination and vertical "Webtoon" style scrolling.
 * **Smart "Continue Reading":** Automatically tracks the specific chapter and page you left off on, allowing for a frictionless resume directly from the home screen.
 * **My List Collection:** A dedicated "Favorites" system linked to your account for bookmarking series.
 * **Dynamic Data:** Real-time library integration using the MangaDex API.

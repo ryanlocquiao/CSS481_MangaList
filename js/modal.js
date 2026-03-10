@@ -1,6 +1,6 @@
 /**
  * js/modal.js - Global Modal Controller
- * 
+ *
  * Injects the Manga Details modal into the DOM and handles all
  * API fetching, rendering, and user interactions
  * (Favorites, Chapter routing) for the pop-up.
@@ -8,11 +8,10 @@
 
 const ModalController = {
     /**
-     * Injects the empty HTML shell of the modal into the
-     * document body and sets up the universal close listeners.
+     * Injects the empty HTML shell of the modal into the document body
+     * and sets up the universal close listeners.
      */
     init() {
-        // Only inject the HTML if it doesn't already exist
         if (document.getElementById('manga-modal')) return;
 
         const modalHTML = `
@@ -58,34 +57,59 @@ const ModalController = {
     },
 
     /**
-     * Populates the modal with data, handles the favorite toggle
-     * logic, and triggers the asynchronous fetch for the chapter
-     * list.
-     * @param {Object} manga = The active manga data object. 
+     * Populates the modal with manga data and opens it.
+     *
+     * @param {Object} manga - The active manga data object.
      */
     async open(manga) {
-        const modal = document.getElementById('manga-modal');
-        const coverImage = modal.querySelector('.modal-cover-image');
-        const title = modal.querySelector('.modal-title');
-        const rating = modal.querySelector('.modal-rating');
-        const status = modal.querySelector('.modal-status');
-        const synopsis = modal.querySelector('.modal-synopsis');
-        const tagsContainer = modal.querySelector('.modal-tags');
-        const bookmarkIcon = modal.querySelector('#bookmark-icon');
-        const chaptersList = modal.querySelector('#modal-chapters-list');
+        // Guard: reject null or structurally invalid manga objects before touching the DOM
+        if (!manga || typeof manga !== 'object') {
+            console.error('ModalController.open: Called with invalid manga object:', manga);
+            return;
+        }
+        if (!manga.id) {
+            console.error('ModalController.open: Manga object is missing required id field:', manga);
+            return;
+        }
 
-        // Route to Reader
-        modal.querySelector('.btn-read').onclick = () => {
+        const modal = document.getElementById('manga-modal');
+        if (!modal) {
+            console.error('ModalController.open: Modal element not found in DOM. Was init() called?');
+            return;
+        }
+
+        const coverImage  = modal.querySelector('.modal-cover-image');
+        const title       = modal.querySelector('.modal-title');
+        const rating      = modal.querySelector('.modal-rating');
+        const status      = modal.querySelector('.modal-status');
+        const synopsis    = modal.querySelector('.modal-synopsis');
+        const tagsContainer  = modal.querySelector('.modal-tags');
+        const bookmarkIcon   = modal.querySelector('#bookmark-icon');
+        const chaptersList   = modal.querySelector('#modal-chapters-list');
+        const btnRead        = modal.querySelector('.btn-read');
+        const btnFavorite    = modal.querySelector('.btn-favorite');
+
+        // Defensive check — all elements must exist before we write to them
+        const requiredEls = { coverImage, title, rating, status, synopsis, tagsContainer, bookmarkIcon, chaptersList, btnRead, btnFavorite };
+        for (const [name, el] of Object.entries(requiredEls)) {
+            if (!el) {
+                console.error(`ModalController.open: Required modal element '${name}' not found.`);
+                return;
+            }
+        }
+
+        // --- Route to Reader ---
+        btnRead.onclick = () => {
             window.location.href = `reader.html?mangaId=${manga.id}`;
         };
 
-        // Favorites Logic
-        let favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
+        // --- Favorites Logic ---
+        let favorites = ModalController._loadFavorites();
         let isFav = favorites.some(fav => fav.id === manga.id);
         bookmarkIcon.src = isFav ? 'assets/bookmark-filled.png' : 'assets/bookmark-empty.png';
 
-        modal.querySelector('.btn-favorite').onclick = () => {
-            favorites = JSON.parse(localStorage.getItem('mangaFavorites')) || [];
+        btnFavorite.onclick = () => {
+            favorites = ModalController._loadFavorites();
             isFav = favorites.some(fav => fav.id === manga.id);
 
             if (isFav) {
@@ -96,66 +120,147 @@ const ModalController = {
                 bookmarkIcon.src = 'assets/bookmark-filled.png';
             }
 
-            localStorage.setItem('mangaFavorites', JSON.stringify(favorites));
-            if (typeof CloudSync !== 'undefined') CloudSync.saveToCloud();
+            try {
+                localStorage.setItem('mangaFavorites', JSON.stringify(favorites));
+            } catch (storageErr) {
+                console.error('ModalController: Failed to save favorites to localStorage:', storageErr);
+                MangaService._showToast('Could not save your favorite — storage may be full.');
+                return;
+            }
 
-            // Broadcast an event so pages like favorites.js know to refresh their grids
+            if (typeof CloudSync !== 'undefined') {
+                CloudSync.saveToCloud().catch(err =>
+                    console.error('ModalController: CloudSync.saveToCloud failed:', err)
+                );
+            }
+
             window.dispatchEvent(new Event('favoritesUpdated'));
         };
 
-        // Inject UI Content
-        coverImage.style.backgroundImage = `url('${manga.coverImage}')`;
-        title.textContent = manga.title;
-        synopsis.textContent = manga.description;
-        rating.textContent = manga.rating ? manga.rating.toUpperCase() : 'N/A';
-        status.textContent = manga.status ? manga.status.charAt(0).toUpperCase() + manga.status.slice(1) : 'Unknown';
+        // --- Populate UI ---
+        if (manga.coverImage) {
+            coverImage.style.backgroundImage = `url('${manga.coverImage}')`;
+        } else {
+            coverImage.style.backgroundImage = '';
+            coverImage.style.backgroundColor = '#333';
+        }
 
-        tagsContainer.innerHTML = manga.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+        title.textContent    = manga.title || 'Unknown Title';
+        synopsis.textContent = manga.description || 'No description available.';
+        rating.textContent   = manga.rating ? manga.rating.toUpperCase() : 'N/A';
+        status.textContent   = manga.status
+            ? manga.status.charAt(0).toUpperCase() + manga.status.slice(1)
+            : 'Unknown';
+
+        if (Array.isArray(manga.tags) && manga.tags.length > 0) {
+            tagsContainer.innerHTML = manga.tags
+                .map(tag => `<span class="tag">${tag}</span>`)
+                .join('');
+        } else {
+            tagsContainer.innerHTML = '<span style="color:#666; font-size:0.85rem;">No tags available.</span>';
+        }
+
         chaptersList.innerHTML = '<p style="color: #a3a3a3;">Loading chapters...</p>';
 
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
-        // Fetch and build chapters asynchronously
+        // --- Async Chapter Fetch ---
         try {
             const feed = await MangaService.getMangaFeed(manga.id);
-            if (!feed?.data?.length) {
-                chaptersList.innerHTML = '<p style="color: #a3a3a3;">No chapters available.</p>';
+
+            if (!feed || !Array.isArray(feed.data) || feed.data.length === 0) {
+                chaptersList.innerHTML = '<p style="color: #a3a3a3;">No English chapters are available for this title.</p>';
                 return;
             }
 
-            let validChapters = feed.data.filter(c => c.attributes.pages > 0 && !c.attributes.externalUrl);
-            validChapters.sort((a, b) => parseFloat(a.attributes.chapter || 0) - parseFloat(b.attributes.chapter || 0));
+            const validChapters = feed.data
+                .filter(c => {
+                    // Guard: skip entries with missing attributes
+                    if (!c || !c.attributes) return false;
+                    return c.attributes.pages > 0 && !c.attributes.externalUrl;
+                })
+                .sort((a, b) => {
+                    const aNum = parseFloat(a.attributes.chapter) || 0;
+                    const bNum = parseFloat(b.attributes.chapter) || 0;
+                    return aNum - bNum;
+                });
 
             if (validChapters.length === 0) {
-                chaptersList.innerHTML = '<p style="color: #a3a3a3;">No readable English chapters found.</p>';
-            } else {
-                chaptersList.innerHTML = '';
-                validChapters.forEach(chapter => {
+                chaptersList.innerHTML = '<p style="color: #a3a3a3;">No readable English chapters found. This title may be licensed or region-locked.</p>';
+                return;
+            }
+
+            chaptersList.innerHTML = '';
+            validChapters.forEach(chapter => {
+                try {
                     const row = document.createElement('div');
                     row.className = 'chapter-row';
-                    const chapNum = chapter.attributes.chapter ? `Chapter ${chapter.attributes.chapter}` : 'Oneshot';
-                    const chapTitle = chapter.attributes.title ? `<span class="chapter-title">${chapter.attributes.title}</span>` : '';
+
+                    const chapNum = chapter.attributes.chapter
+                        ? `Chapter ${chapter.attributes.chapter}`
+                        : 'Oneshot';
+                    const chapTitle = chapter.attributes.title
+                        ? `<span class="chapter-title">${chapter.attributes.title}</span>`
+                        : '';
 
                     row.innerHTML = `
-                        <div class="chapter-info"><span class="chapter-number">${chapNum}</span>${chapTitle}</div>
+                        <div class="chapter-info">
+                            <span class="chapter-number">${chapNum}</span>
+                            ${chapTitle}
+                        </div>
                         <span style="font-size: 1.2rem;">&#9654;</span>
                     `;
-                    row.onclick = () => window.location.href = `reader.html?mangaId=${manga.id}&chapterId=${chapter.id}`;
+
+                    row.onclick = () => {
+                        window.location.href = `reader.html?mangaId=${manga.id}&chapterId=${chapter.id}`;
+                    };
+
                     chaptersList.appendChild(row);
-                });
-            }
+                } catch (rowErr) {
+                    console.error('ModalController.open: Failed to render chapter row:', chapter, rowErr);
+                    // Skip this chapter and continue rendering the rest
+                }
+            });
+
         } catch (err) {
-            chaptersList.innerHTML = '<p style="color: #ff4444; padding: 10px;">Failed to load chapters.</p>';
+            console.error('ModalController.open: Failed to load chapter list:', err);
+            chaptersList.innerHTML = `
+                <p style="color: #ff4444; padding: 10px;">
+                    Failed to load chapters. Check your connection and try again.
+                </p>`;
         }
     },
 
+    /**
+     * Closes the manga details modal.
+     */
     close() {
-        document.getElementById('manga-modal').classList.add('hidden');
+        const modal = document.getElementById('manga-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
         document.body.style.overflow = 'auto';
         document.body.style.overflowX = 'hidden';
-    }
+    },
+
+    /**
+     * Safely reads the favorites list from localStorage.
+     * Returns an empty array if the data is missing or corrupted.
+     *
+     * @returns {Array}
+     */
+    _loadFavorites() {
+        try {
+            const raw = localStorage.getItem('mangaFavorites');
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (err) {
+            console.error('ModalController._loadFavorites: Corrupt favorites data, resetting:', err);
+            localStorage.removeItem('mangaFavorites');
+            return [];
+        }
+    },
 };
 
-// Initialize modal structure immediately upon loading the script
 document.addEventListener('DOMContentLoaded', () => ModalController.init());

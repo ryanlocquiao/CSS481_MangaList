@@ -1,122 +1,144 @@
 /**
  * js/reader.js - Theater Mode Controller
- * 
+ *
  * Manages the full-screen reading experience, including dynamic
  * dual-page layouts, right-to-left (RTL) manga reading modes,
  * and state synchronization with LocalStorage/Cloud.
  */
 
-/**
- * Reader State Management
- * Grouping all reader variables into a single state object
- * prevents global namespace pollution and makes it explicitly
- * clear what data drives the current view.
- */
 const ReaderState = {
-    pages: [],
+    pages:            [],
     currentPageIndex: 0,
-    currentManga: null,
-    allChapters: [],
+    currentManga:     null,
+    allChapters:      [],
     currentChapterId: null,
-    layout: localStorage.getItem('readerLayout') || 'single',
-    direction: localStorage.getItem('readerDirection') || 'ltr'
+    layout:           'single',
+    direction:        'ltr',
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Safely load persisted reader preferences
+    try {
+        ReaderState.layout    = localStorage.getItem('readerLayout')    || 'single';
+        ReaderState.direction = localStorage.getItem('readerDirection') || 'ltr';
+    } catch (err) {
+        console.error('reader.js: Failed to read preferences from localStorage:', err);
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
-    const mangaId = urlParams.get('mangaId');
+    const mangaId   = urlParams.get('mangaId');
     const targetChapterId = urlParams.get('chapterId');
 
-    // Redirect to home if accessed directly without a manga ID
     if (!mangaId) {
+        console.error('reader.js: No mangaId in URL. Redirecting to home.');
         window.location.href = 'index.html';
         return;
     }
 
-    // Fetch and display the Manga Title immediately so the user knows it is loading
-    ReaderState.currentManga = await MangaService.getMangaById(mangaId);
-    if (ReaderState.currentManga) {
-        document.getElementById('manga-title-display').textContent = ReaderState.currentManga.title;
+    // Show the title immediately so the user knows something is loading
+    try {
+        ReaderState.currentManga = await MangaService.getMangaById(mangaId);
+        const titleDisplay = document.getElementById('manga-title-display');
+        if (titleDisplay) {
+            titleDisplay.textContent = ReaderState.currentManga?.title || 'Loading...';
+        }
+    } catch (err) {
+        console.error('reader.js: Failed to fetch manga metadata:', err);
+        // Non-fatal — continue loading chapters even without full metadata
     }
 
-    // Initialize the core reader components
-    await loadChapters(mangaId, targetChapterId);
     setupSettingsPanel();
     setupNavigationControls();
+
+    await loadChapters(mangaId, targetChapterId);
 });
 
 /**
- * Initializes the slide-out settings panel and its dropdown
- * listeners.
+ * Initializes the slide-out settings panel and its dropdown listeners.
  */
 function setupSettingsPanel() {
-    const panel = document.getElementById('settings-panel');
-    const btnOpen = document.getElementById('settings-btn');
-    const btnClose = document.getElementById('close-settings-btn');
-    const layoutSelect = document.getElementById('setting-layout');
+    const panel           = document.getElementById('settings-panel');
+    const btnOpen         = document.getElementById('settings-btn');
+    const btnClose        = document.getElementById('close-settings-btn');
+    const layoutSelect    = document.getElementById('setting-layout');
     const directionSelect = document.getElementById('setting-direction');
 
-    // Sync dropdowns to match saved preferences
-    layoutSelect.value = ReaderState.layout;
+    if (!panel || !btnOpen || !btnClose || !layoutSelect || !directionSelect) {
+        console.warn('setupSettingsPanel: One or more settings panel elements not found.');
+        return;
+    }
+
+    layoutSelect.value    = ReaderState.layout;
     directionSelect.value = ReaderState.direction;
 
-    btnOpen.onclick = () => panel.classList.add('open');
+    btnOpen.onclick  = () => panel.classList.add('open');
     btnClose.onclick = () => panel.classList.remove('open');
 
-    // Listen for layout changes (Single vs Double page)
     layoutSelect.addEventListener('change', (e) => {
         ReaderState.layout = e.target.value;
-        localStorage.setItem('readerLayout', ReaderState.layout);
-        renderPage(); 
+        try {
+            localStorage.setItem('readerLayout', ReaderState.layout);
+        } catch (err) {
+            console.error('setupSettingsPanel: Could not save layout preference:', err);
+        }
+        renderPage();
     });
 
-    // Listen for direction changes (LTR vs RTL)
     directionSelect.addEventListener('change', (e) => {
         ReaderState.direction = e.target.value;
-        localStorage.setItem('readerDirection', ReaderState.direction);
-        renderPage(); 
+        try {
+            localStorage.setItem('readerDirection', ReaderState.direction);
+        } catch (err) {
+            console.error('setupSettingsPanel: Could not save direction preference:', err);
+        }
+        renderPage();
     });
 }
 
 /**
- * Wires up the interactive navigation zones, scrub slider, and
- * keyboard listeners.
- * The logic flips dynamically based on the user's RTL or LTR
- * preference.
+ * Wires up click zones, slider, and keyboard listeners.
  */
 function setupNavigationControls() {
-    // Invisible click zones for turning pages
-    document.getElementById('left-zone').addEventListener('click', () => {
-        if (ReaderState.direction === 'rtl') nextPage(); else prevPage();
-    });
-    
-    document.getElementById('right-zone').addEventListener('click', () => {
-        if (ReaderState.direction === 'rtl') prevPage(); else nextPage();
-    });
+    const leftZone  = document.getElementById('left-zone');
+    const rightZone = document.getElementById('right-zone');
+    const slider    = document.getElementById('page-slider');
 
-    // The scrubbing progress slider
-    const slider = document.getElementById('page-slider');
-    if (slider) {
-        slider.addEventListener('input', (e) => {
-            ReaderState.currentPageIndex = parseInt(e.target.value);
-            renderPage();
+    if (!leftZone || !rightZone) {
+        console.warn('setupNavigationControls: Click zones not found.');
+    } else {
+        leftZone.addEventListener('click', () => {
+            if (ReaderState.direction === 'rtl') nextPage(); else prevPage();
+        });
+        rightZone.addEventListener('click', () => {
+            if (ReaderState.direction === 'rtl') prevPage(); else nextPage();
         });
     }
 
-    // Keyboard arrow key and fullscreen support
+    if (slider) {
+        slider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            if (!isNaN(val) && val >= 0 && val < ReaderState.pages.length) {
+                ReaderState.currentPageIndex = val;
+                renderPage();
+            }
+        });
+    }
+
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight') {
-            if (ReaderState.direction === 'rtl') prevPage(); else nextPage();
-        }
-        if (e.key === 'ArrowLeft') {
-            if (ReaderState.direction === 'rtl') nextPage(); else prevPage();
-        }
-        if (e.key === 'Escape') {
-            // Only redirect to home if they aren't in fullscreen
-            if (!document.fullscreenElement) window.location.href = 'index.html';
-        }
-        if (e.key === 'f' || e.key === 'F') {
-            toggleFullscreen();
+        switch (e.key) {
+            case 'ArrowRight':
+                if (ReaderState.direction === 'rtl') prevPage(); else nextPage();
+                break;
+            case 'ArrowLeft':
+                if (ReaderState.direction === 'rtl') nextPage(); else prevPage();
+                break;
+            case 'Escape':
+                if (!document.fullscreenElement) window.location.href = 'index.html';
+                break;
+            case 'f':
+            case 'F':
+                toggleFullscreen();
+                break;
         }
     });
 
@@ -127,46 +149,56 @@ function setupNavigationControls() {
 }
 
 /**
- * Fetches the chapter list for the current manga and determines
- * which chapter to load first based on the URL parameter or
- * saved progress.
+ * Fetches the chapter list and determines which chapter to load first.
  */
 async function loadChapters(mangaId, targetChapterId) {
     try {
         const feedData = await MangaService.getMangaFeed(mangaId);
 
-        if (!feedData.data || feedData.data.length === 0) {
-            showNoChaptersError();
+        if (!feedData || !Array.isArray(feedData.data) || feedData.data.length === 0) {
+            showReaderError('No chapters are available for this manga.');
             return;
         }
 
-        // Filter out external/unreadable chapters and sort them in ascending order
-        ReaderState.allChapters = feedData.data.filter(chapter => 
-            chapter?.attributes?.pages > 0 && !chapter?.attributes?.externalUrl
-        );
-        ReaderState.allChapters.sort((a, b) => parseFloat(a.attributes.chapter || 0) - parseFloat(b.attributes.chapter || 0));
+        ReaderState.allChapters = feedData.data
+            .filter(chapter => {
+                if (!chapter?.attributes) return false;
+                return chapter.attributes.pages > 0 && !chapter.attributes.externalUrl;
+            })
+            .sort((a, b) => {
+                return parseFloat(a.attributes.chapter || 0) - parseFloat(b.attributes.chapter || 0);
+            });
 
         if (ReaderState.allChapters.length === 0) {
-            showNoChaptersError();
+            showReaderError('No readable English chapters found. This title may be licensed or region-locked.');
             return;
         }
 
         let chapterToLoad = null;
 
-        // 1. Did the user explicitly click a specific chapter?
+        // Priority 1: Explicit URL param
         if (targetChapterId) {
-            chapterToLoad = ReaderState.allChapters.find(c => c.id === targetChapterId);
-        }
-
-        // 2. If not, do they have saved reading progress we can resume?
-        if (!chapterToLoad) {
-            const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
-            if (progress[mangaId] && progress[mangaId].chapterId) {
-                chapterToLoad = ReaderState.allChapters.find(c => c.id === progress[mangaId].chapterId);
+            chapterToLoad = ReaderState.allChapters.find(c => c.id === targetChapterId) || null;
+            if (!chapterToLoad) {
+                console.warn(`loadChapters: Chapter ID from URL not found in feed: ${targetChapterId}`);
             }
         }
 
-        // 3. If neither, start from the very first available chapter
+        // Priority 2: Saved reading progress
+        if (!chapterToLoad) {
+            try {
+                const raw = localStorage.getItem('readingProgress');
+                const progress = raw ? JSON.parse(raw) : {};
+                const savedChapterId = progress[mangaId]?.chapterId;
+                if (savedChapterId) {
+                    chapterToLoad = ReaderState.allChapters.find(c => c.id === savedChapterId) || null;
+                }
+            } catch (err) {
+                console.error('loadChapters: Failed to read reading progress from localStorage:', err);
+            }
+        }
+
+        // Priority 3: First chapter
         if (!chapterToLoad) {
             chapterToLoad = ReaderState.allChapters[0];
         }
@@ -175,173 +207,242 @@ async function loadChapters(mangaId, targetChapterId) {
 
         buildChapterDropdown();
         await fetchAndRenderChapter(ReaderState.currentChapterId, mangaId, targetChapterId !== null);
-    } catch (error) {
-        console.error("CRITICAL ERROR loading chapters:", error);
-        showNoChaptersError();
+
+    } catch (err) {
+        console.error('loadChapters: Unexpected error:', err);
+        showReaderError('Failed to load chapters. Check your connection and try again.');
     }
 }
 
 /**
- * Injects a select dropdown into the top HUD allowing users to
- * quickly jump between chapters.
+ * Injects a chapter select dropdown into the top HUD.
  */
 function buildChapterDropdown() {
     let select = document.getElementById('chapter-select');
 
-    // Create the dropdown if it doesn't exist yet
     if (!select) {
         const titleDisplay = document.getElementById('manga-title-display');
+        if (!titleDisplay) {
+            console.warn('buildChapterDropdown: manga-title-display element not found.');
+            return;
+        }
+
         select = document.createElement('select');
-        select.id = 'chapter-select';
+        select.id        = 'chapter-select';
         select.className = 'chapter-dropdown';
         titleDisplay.parentNode.insertBefore(select, titleDisplay.nextSibling);
 
-        titleDisplay.style.display = 'inline-block';
-        titleDisplay.parentNode.style.display = 'flex';
+        titleDisplay.parentNode.style.display    = 'flex';
         titleDisplay.parentNode.style.alignItems = 'center';
 
-        // Prevent spacebar/arrows from scrolling the dropdown when focused
         select.addEventListener('keydown', (e) => e.preventDefault());
     }
 
-    // Handle the user selecting a new chapter
+    // Remove old listener by cloning (safe way to avoid duplicate events)
+    const newSelect = select.cloneNode(false);
+    select.parentNode.replaceChild(newSelect, select);
+    select = newSelect;
+
     select.addEventListener('change', async (e) => {
-        ReaderState.currentChapterId = e.target.value;
-        select.blur(); // Remove focus so keyboard navigation returns to turning pages
-        await fetchAndRenderChapter(ReaderState.currentChapterId, ReaderState.currentManga.id, true);
+        const newChapterId = e.target.value;
+        if (!newChapterId) return;
+        ReaderState.currentChapterId = newChapterId;
+        select.blur();
+        await fetchAndRenderChapter(ReaderState.currentChapterId, ReaderState.currentManga?.id, true);
     });
 
-    // Populate the options
     select.innerHTML = '';
     ReaderState.allChapters.forEach(chapter => {
-        const option = document.createElement('option');
-        option.value = chapter.id;
-        const chapNum = chapter.attributes.chapter ? `Chapter ${chapter.attributes.chapter}` : 'Oneshot';
-        option.textContent = chapNum;
-
-        // Highlight the chapter we are currently reading
+        const option    = document.createElement('option');
+        option.value    = chapter.id;
+        option.textContent = chapter.attributes.chapter
+            ? `Chapter ${chapter.attributes.chapter}`
+            : 'Oneshot';
         if (chapter.id === ReaderState.currentChapterId) option.selected = true;
         select.appendChild(option);
     });
 }
 
 /**
- * Fetches the image URLs for the active chapter and determines
- * the starting page index.
+ * Fetches image URLs for the active chapter and sets up the reader.
  */
 async function fetchAndRenderChapter(chapterId, mangaId, isNewChapterClick) {
-    const pagesData = await MangaService.getChapterImages(chapterId);
-
-    if (!pagesData || pagesData.length === 0) {
-        showNoChaptersError();
+    if (!chapterId) {
+        console.error('fetchAndRenderChapter: chapterId is required.');
+        showReaderError('Could not determine which chapter to load.');
         return;
     }
 
-    ReaderState.pages = pagesData;
-    document.getElementById('total-pages').textContent = ReaderState.pages.length;
+    try {
+        const pagesData = await MangaService.getChapterImages(chapterId);
 
-    // Setup the bounds for the scrubbing slider
-    const slider = document.getElementById('page-slider');
-    if (slider) slider.max = ReaderState.pages.length - 1;
+        if (!pagesData || pagesData.length === 0) {
+            showReaderError('No pages are available for this chapter. It may be licensed or region-locked.');
+            return;
+        }
 
-    ReaderState.currentPageIndex = 0;
+        // Hide any previous error message
+        const prevError = document.getElementById('reader-error-msg');
+        if (prevError) prevError.remove();
 
-    // If the user is resuming, restore their exact page index
-    if (!isNewChapterClick) {
-        const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
-        if (progress[mangaId] && progress[mangaId].chapterId === chapterId) {
-            ReaderState.currentPageIndex = progress[mangaId].pageIndex || 0;
-            
-            // Edge case: if the API removed a page, ensure we don't overshoot the array bounds
-            if (ReaderState.currentPageIndex >= ReaderState.pages.length) {
-                ReaderState.currentPageIndex = ReaderState.pages.length - 1;
+        const container  = document.getElementById('image-container');
+        const leftZone   = document.getElementById('left-zone');
+        const rightZone  = document.getElementById('right-zone');
+
+        if (container)  container.style.display  = '';
+        if (leftZone)   leftZone.style.display   = '';
+        if (rightZone)  rightZone.style.display  = '';
+
+        ReaderState.pages = pagesData;
+
+        const totalPagesEl = document.getElementById('total-pages');
+        if (totalPagesEl) totalPagesEl.textContent = ReaderState.pages.length;
+
+        const slider = document.getElementById('page-slider');
+        if (slider) slider.max = ReaderState.pages.length - 1;
+
+        ReaderState.currentPageIndex = 0;
+
+        // Restore saved position when resuming (not when explicitly clicking a chapter)
+        if (!isNewChapterClick && mangaId) {
+            try {
+                const raw      = localStorage.getItem('readingProgress');
+                const progress = raw ? JSON.parse(raw) : {};
+                const saved    = progress[mangaId];
+
+                if (saved && saved.chapterId === chapterId && typeof saved.pageIndex === 'number') {
+                    const restoredIndex = saved.pageIndex;
+                    // Guard: saved index must be within current page count
+                    if (restoredIndex >= 0 && restoredIndex < ReaderState.pages.length) {
+                        ReaderState.currentPageIndex = restoredIndex;
+                    } else {
+                        console.warn(`fetchAndRenderChapter: Saved page index ${restoredIndex} is out of bounds (${ReaderState.pages.length} pages). Starting from page 1.`);
+                    }
+                }
+            } catch (err) {
+                console.error('fetchAndRenderChapter: Failed to restore reading progress:', err);
+                // Non-fatal — just start from the beginning
             }
         }
-    }
 
-    renderPage();
+        renderPage();
+
+    } catch (err) {
+        console.error('fetchAndRenderChapter: Unexpected error:', err);
+        showReaderError('Failed to load chapter pages. Check your connection and try again.');
+    }
 }
 
 /**
- * Displays a graceful error message if the chapter fails to load
- * or is region-locked.
+ * Displays a full-screen error message inside the Theater Mode canvas.
+ *
+ * @param {string} message - Error description to show the user.
  */
-function showNoChaptersError() {
+function showReaderError(message) {
     const container = document.getElementById('image-container');
-    const leftZone = document.getElementById('left-zone');
+    const leftZone  = document.getElementById('left-zone');
     const rightZone = document.getElementById('right-zone');
-    
-    if (container) container.style.display = 'none';
-    if (leftZone) leftZone.style.display = 'none';
-    if (rightZone) rightZone.style.display = 'none';
+
+    if (container)  container.style.display  = 'none';
+    if (leftZone)   leftZone.style.display   = 'none';
+    if (rightZone)  rightZone.style.display  = 'none';
 
     const canvas = document.querySelector('.theater-canvas');
+    if (!canvas) return;
+
     let errorMsg = document.getElementById('reader-error-msg');
-    
     if (!errorMsg) {
         errorMsg = document.createElement('div');
         errorMsg.id = 'reader-error-msg';
-        errorMsg.style.color = '#a3a3a3';
-        errorMsg.style.fontSize = '1.25rem';
-        errorMsg.style.textAlign = 'center';
-        errorMsg.style.padding = '40px';
-        errorMsg.style.maxWidth = '600px';
-        errorMsg.style.lineHeight = '1.6';
-        errorMsg.style.position = 'absolute';
-        errorMsg.style.top = '50%';
-        errorMsg.style.left = '50%';
-        errorMsg.style.transform = 'translate(-50%, -50%)';
+        Object.assign(errorMsg.style, {
+            color:     '#a3a3a3',
+            fontSize:  '1.25rem',
+            textAlign: 'center',
+            padding:   '40px',
+            maxWidth:  '600px',
+            lineHeight: '1.6',
+            position:  'absolute',
+            top:       '50%',
+            left:      '50%',
+            transform: 'translate(-50%, -50%)',
+        });
         canvas.appendChild(errorMsg);
     }
 
-    errorMsg.textContent = "Sorry, there are no English Chapters available or this Manga is licensed.";
+    errorMsg.textContent = message;
 
-    document.getElementById('current-page').textContent = '0';
-    document.getElementById('total-pages').textContent = '0';
+    const currentPageEl = document.getElementById('current-page');
+    const totalPagesEl  = document.getElementById('total-pages');
+    if (currentPageEl) currentPageEl.textContent = '0';
+    if (totalPagesEl)  totalPagesEl.textContent  = '0';
 }
 
 /**
- * The core rendering engine. Updates the DOM to display the
- * correct images, syncs the UI elements, and calls the save
- * function.
+ * Core rendering engine — updates the DOM to show the correct page(s).
  */
 function renderPage() {
-    if (ReaderState.pages.length === 0) return;
+    if (!ReaderState.pages || ReaderState.pages.length === 0) {
+        console.warn('renderPage: Called with empty pages array.');
+        return;
+    }
 
-    const img1 = document.getElementById('reader-image-1');
-    const img2 = document.getElementById('reader-image-2');
-    const container = document.getElementById('image-container');
-    const counterElem = document.getElementById('current-page');
+    // Clamp index defensively — should never be needed, but prevents blank screens
+    if (ReaderState.currentPageIndex < 0) {
+        ReaderState.currentPageIndex = 0;
+    }
+    if (ReaderState.currentPageIndex >= ReaderState.pages.length) {
+        ReaderState.currentPageIndex = ReaderState.pages.length - 1;
+    }
 
-    // Flexbox visually inverts the images if the user is reading RTL
+    const img1         = document.getElementById('reader-image-1');
+    const img2         = document.getElementById('reader-image-2');
+    const container    = document.getElementById('image-container');
+    const counterElem  = document.getElementById('current-page');
+
+    if (!img1 || !img2 || !container || !counterElem) {
+        console.error('renderPage: One or more required reader DOM elements are missing.');
+        return;
+    }
+
     container.style.flexDirection = (ReaderState.direction === 'rtl') ? 'row-reverse' : 'row';
 
-    // Load the primary page
-    img1.src = ReaderState.pages[ReaderState.currentPageIndex];
+    const currentSrc = ReaderState.pages[ReaderState.currentPageIndex];
+    if (!currentSrc) {
+        console.error(`renderPage: No URL at page index ${ReaderState.currentPageIndex}.`);
+        return;
+    }
+    img1.src = currentSrc;
 
-    // Layout handling (Single vs Double Page Spread)
-    if (ReaderState.layout === 'double' && ReaderState.currentPageIndex < ReaderState.pages.length - 1) {
-        img2.src = ReaderState.pages[ReaderState.currentPageIndex + 1];
+    // Attach fallback for broken images (e.g. CDN failure mid-read)
+    img1.onerror = () => {
+        console.warn(`renderPage: Failed to load image at index ${ReaderState.currentPageIndex}.`);
+        img1.alt = 'Image failed to load. Try refreshing.';
+    };
+
+    const hasNextPage = ReaderState.currentPageIndex < ReaderState.pages.length - 1;
+    if (ReaderState.layout === 'double' && hasNextPage) {
+        const nextSrc = ReaderState.pages[ReaderState.currentPageIndex + 1];
+        img2.src          = nextSrc || '';
         img2.style.display = 'block';
+        img2.onerror = () => { img2.alt = 'Image failed to load.'; };
         container.classList.remove('single-mode');
-        counterElem.textContent = `${ReaderState.currentPageIndex + 1}-${ReaderState.currentPageIndex + 2}`;
+        counterElem.textContent = `${ReaderState.currentPageIndex + 1}–${ReaderState.currentPageIndex + 2}`;
     } else {
         img2.style.display = 'none';
         container.classList.add('single-mode');
         counterElem.textContent = ReaderState.currentPageIndex + 1;
     }
 
-    // Reset scroll position in case the previous page was a tall webtoon strip
     window.scrollTo(0, 0);
 
-    // Sync the scrubbing slider UI
     const slider = document.getElementById('page-slider');
     if (slider) {
         slider.value = ReaderState.currentPageIndex;
-        slider.dir = (ReaderState.direction === 'rtl') ? 'rtl' : 'ltr';
+        slider.dir   = (ReaderState.direction === 'rtl') ? 'rtl' : 'ltr';
         slider.style.backgroundPosition = (ReaderState.direction === 'rtl') ? 'right center' : 'left center';
-        
-        const percent = ReaderState.pages.length > 1 ? (ReaderState.currentPageIndex / (ReaderState.pages.length - 1)) * 100 : 0;
+        const percent = ReaderState.pages.length > 1
+            ? (ReaderState.currentPageIndex / (ReaderState.pages.length - 1)) * 100
+            : 0;
         slider.style.backgroundSize = `${percent}% 100%`;
     }
 
@@ -349,82 +450,105 @@ function renderPage() {
 }
 
 /**
- * Saves the current page index and chapter to LocalStorage and
- * triggers a Firebase sync.
+ * Saves the current reading position to localStorage and triggers cloud sync.
+ * Wrapped in try/catch so a storage failure never crashes the reader.
  */
 function saveReadingProgress() {
-    if (!ReaderState.currentManga) return;
+    if (!ReaderState.currentManga?.id) return;
 
-    let chapNum = '?';
-    if (ReaderState.allChapters && ReaderState.allChapters.length > 0) {
-        const currentChapter = ReaderState.allChapters.find(c => c.id == ReaderState.currentChapterId);
-        if (currentChapter) {
-            chapNum = currentChapter.attributes.chapter ? currentChapter.attributes.chapter : 'Oneshot';
+    try {
+        let chapNum = '?';
+        if (Array.isArray(ReaderState.allChapters) && ReaderState.currentChapterId) {
+            const currentChapter = ReaderState.allChapters.find(c => c.id === ReaderState.currentChapterId);
+            if (currentChapter?.attributes) {
+                chapNum = currentChapter.attributes.chapter || 'Oneshot';
+            }
         }
+
+        let progress = {};
+        try {
+            const raw = localStorage.getItem('readingProgress');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                progress = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+            }
+        } catch (parseErr) {
+            console.error('saveReadingProgress: Could not parse existing progress, starting fresh:', parseErr);
+        }
+
+        progress[ReaderState.currentManga.id] = {
+            id:          ReaderState.currentManga.id,
+            title:       ReaderState.currentManga.title       || '',
+            coverImage:  ReaderState.currentManga.coverImage  || '',
+            chapterId:   ReaderState.currentChapterId,
+            chapterNum:  chapNum,
+            pageIndex:   ReaderState.currentPageIndex,
+            timestamp:   Date.now(),
+        };
+
+        localStorage.setItem('readingProgress', JSON.stringify(progress));
+
+        if (typeof CloudSync !== 'undefined') {
+            CloudSync.saveToCloud().catch(err =>
+                console.error('saveReadingProgress: CloudSync.saveToCloud failed:', err)
+            );
+        }
+
+    } catch (err) {
+        // localStorage could throw QuotaExceededError — don't crash the reader
+        console.error('saveReadingProgress: Failed to save progress:', err);
     }
-
-    const progress = JSON.parse(localStorage.getItem('readingProgress')) || {};
-    progress[ReaderState.currentManga.id] = {
-        id: ReaderState.currentManga.id,
-        title: ReaderState.currentManga.title,
-        coverImage: ReaderState.currentManga.coverImage,
-        chapterId: ReaderState.currentChapterId,
-        chapterNum: chapNum,
-        pageIndex: ReaderState.currentPageIndex,
-        timestamp: Date.now()
-    };
-
-    localStorage.setItem('readingProgress', JSON.stringify(progress));
-    if (typeof CloudSync !== 'undefined') CloudSync.saveToCloud();
 }
 
 /**
- * Advances the reader forward. Logic adapts based on whether 1
- * or 2 pages are displayed.
- * Automatically jumps to the next chapter if the current one is
- * finished.
+ * Advances the reader forward, jumping to the next chapter if at the end.
  */
 async function nextPage() {
-    // Determine the step size based on current layout
     const step = (ReaderState.layout === 'double' && ReaderState.currentPageIndex < ReaderState.pages.length - 1) ? 2 : 1;
 
     if (ReaderState.currentPageIndex < ReaderState.pages.length - 1) {
-        ReaderState.currentPageIndex += step;
-        
-        // Safety check in case the double-page jump overshoots the array length
-        if (ReaderState.currentPageIndex >= ReaderState.pages.length) {
-            ReaderState.currentPageIndex = ReaderState.pages.length - 1;
-        }
-        
+        ReaderState.currentPageIndex = Math.min(
+            ReaderState.currentPageIndex + step,
+            ReaderState.pages.length - 1
+        );
         renderPage();
+        return;
+    }
+
+    // End of chapter — attempt to load the next one
+    if (!Array.isArray(ReaderState.allChapters) || ReaderState.allChapters.length === 0) {
+        window.location.href = ReaderState.currentManga?.id
+            ? `index.html?openModal=${ReaderState.currentManga.id}`
+            : 'index.html';
+        return;
+    }
+
+    const currentIndex = ReaderState.allChapters.findIndex(c => c.id === ReaderState.currentChapterId);
+
+    if (currentIndex !== -1 && currentIndex + 1 < ReaderState.allChapters.length) {
+        const nextChapter = ReaderState.allChapters[currentIndex + 1];
+        ReaderState.currentChapterId = nextChapter.id;
+
+        const select = document.getElementById('chapter-select');
+        if (select) select.value = ReaderState.currentChapterId;
+
+        await fetchAndRenderChapter(ReaderState.currentChapterId, ReaderState.currentManga?.id, true);
     } else {
-        // End of chapter reached: attempt to load the next one
-        const currentIndex = ReaderState.allChapters.findIndex(c => c.id === ReaderState.currentChapterId);
-
-        if (currentIndex !== -1 && currentIndex + 1 < ReaderState.allChapters.length) {
-            const nextChapter = ReaderState.allChapters[currentIndex + 1];
-            ReaderState.currentChapterId = nextChapter.id;
-
-            // Sync the UI dropdown
-            const select = document.getElementById('chapter-select');
-            if (select) select.value = ReaderState.currentChapterId;
-
-            await fetchAndRenderChapter(ReaderState.currentChapterId, ReaderState.currentManga.id, true);
-        } else {
-            // If there are no more chapters, kick the user back to the home page modal
-            window.location.href = `index.html?openModal=${ReaderState.currentManga.id}`;
-        }
+        // No more chapters — return to the manga modal
+        const returnUrl = ReaderState.currentManga?.id
+            ? `index.html?openModal=${ReaderState.currentManga.id}`
+            : 'index.html';
+        window.location.href = returnUrl;
     }
 }
 
 /**
- * Rewinds the reader backward. Logic adapts based on layout.
+ * Rewinds the reader backward.
  */
 function prevPage() {
     const step = (ReaderState.layout === 'double') ? 2 : 1;
 
     if (ReaderState.currentPageIndex > 0) {
-        // Math.max prevents the step from pushing the index into negative numbers
         ReaderState.currentPageIndex = Math.max(0, ReaderState.currentPageIndex - step);
         renderPage();
     }
@@ -436,11 +560,11 @@ function prevPage() {
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
-            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+            console.error(`toggleFullscreen: Could not enter fullscreen: ${err.message}`);
         });
     } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
+        document.exitFullscreen?.().catch(err => {
+            console.error(`toggleFullscreen: Could not exit fullscreen: ${err.message}`);
+        });
     }
 }

@@ -88,4 +88,3 @@ The system is modularized into three primary layers:
 ## 👥 Authors
 * **Ryan Locquiao**
 * **Kevin Li**
-* **Ana Rocha**
